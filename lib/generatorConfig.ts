@@ -20,3 +20,8 @@ export const CIRCUIT_BREAKER = {
 export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 export const GENERATION_MAX_TOKENS = 8000;
 export const GENERATION_TEMPERATURE = 0.2;
+
+// 5 runs per hashed IP per day, per the brief. Not an env var: it is not in
+// the brief's .env.example list, and belongs next to the other generator
+// tuning here rather than as an extra undocumented variable.
+export const RATE_LIMIT_PER_IP_PER_DAY = 5;

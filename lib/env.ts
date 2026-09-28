@@ -28,7 +28,6 @@ export const env = {
   seriesEnabled: bool(process.env.SERIES_ENABLED, false),
   gitCommitSha: process.env.GIT_COMMIT_SHA ?? "dev",
   siteUrl: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
-  rateLimitPerIpPerDay: num(process.env.RATE_LIMIT_PER_IP_PER_DAY, 5),
 };
 
 export function isConfigured(key: "resend" | "folk"): boolean {

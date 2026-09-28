@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { env } from "@/lib/env";
+import { RATE_LIMIT_PER_IP_PER_DAY } from "@/lib/generatorConfig";
 
 /** Atomically increments today's (UTC) request count for a hashed IP and
  * returns whether this request is still within the daily limit. */
@@ -12,5 +12,5 @@ export async function checkAndIncrementRateLimit(ipHash: string): Promise<{ allo
     [ipHash]
   );
   const count = rows[0]?.count ?? 1;
-  return { allowed: count <= env.rateLimitPerIpPerDay, count };
+  return { allowed: count <= RATE_LIMIT_PER_IP_PER_DAY, count };
 }
