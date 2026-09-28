@@ -72,15 +72,21 @@ export async function discoverPages(inputUrl: string): Promise<FetchedPage[]> {
   const origin = new URL(inputUrl).origin;
   const pages: FetchedPage[] = [];
 
-  const inputText = await fetchCapped(inputUrl, 12000);
   let inputHtml = "";
-  try {
-    const raw = await safeFetch(inputUrl);
-    inputHtml = raw.text;
-  } catch {
-    inputHtml = "";
+  const inputPathname = new URL(inputUrl).pathname;
+  if (!(await isDisallowed(origin, inputPathname))) {
+    try {
+      const raw = await safeFetch(inputUrl);
+      if (raw.status === 200) {
+        inputHtml = raw.text;
+        const markdown = isMarkdownLike(raw.url, raw.headers.get("content-type"));
+        const text = (markdown ? raw.text : htmlToText(raw.text)).slice(0, 12000);
+        if (text) pages.push({ url: inputUrl, label: "input page", content: text });
+      }
+    } catch {
+      inputHtml = "";
+    }
   }
-  if (inputText) pages.push({ url: inputUrl, label: "input page", content: inputText });
 
   const llmsTxt = await fetchCapped(`${origin}/llms.txt`, 20000);
   if (llmsTxt) pages.push({ url: `${origin}/llms.txt`, label: "llms.txt", content: llmsTxt });
