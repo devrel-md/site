@@ -20,8 +20,12 @@ export const env = {
   emailFrom: process.env.EMAIL_FROM ?? "DEVREL.md <hello@devrel.md>",
   folkApiKey: process.env.FOLK_API_KEY ?? "",
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA",
+  // Infisical names this TURNSTILE_SITE_SECRET; TURNSTILE_SECRET_KEY is kept
+  // as a fallback for anyone following the brief's original naming.
   turnstileSecretKey:
-    process.env.TURNSTILE_SECRET_KEY ?? "1x0000000000000000000000000000000AA",
+    process.env.TURNSTILE_SITE_SECRET ??
+    process.env.TURNSTILE_SECRET_KEY ??
+    "1x0000000000000000000000000000000AA",
   ipHashSalt: process.env.IP_HASH_SALT ?? "local-dev-salt",
   cronSecret: process.env.CRON_SECRET ?? "local-dev-cron-secret",
   dailySpendCapUsd: num(process.env.DAILY_SPEND_CAP_USD, 2.0),

@@ -67,8 +67,12 @@ export interface AudienceContact {
   teamSize: string;
 }
 
+let warnedRestrictedApiKey = false;
+
 /** Upserts a contact to the Resend audience for future broadcasts. Logs and
- * no-ops when Resend or the audience id is unset. */
+ * no-ops when Resend or the audience id is unset, and never throws: a
+ * sending-only RESEND_API_KEY can't do this (Resend returns 401
+ * restricted_api_key), and that must not fail the lead flow or the outbox. */
 export async function upsertAudienceContact(contact: AudienceContact): Promise<void> {
   if (!isConfigured("resend") || !env.resendAudienceId) {
     console.log(`[resend:not-configured] would upsert audience contact ${contact.email}`);
@@ -76,11 +80,29 @@ export async function upsertAudienceContact(contact: AudienceContact): Promise<v
   }
 
   try {
-    await getClient().contacts.create({
+    const result = await getClient().contacts.create({
       audienceId: env.resendAudienceId,
       email: contact.email,
       unsubscribed: false,
     });
+
+    if (result.error) {
+      // Resend's API returns 401 "restricted_api_key" for a sending-only
+      // key trying to manage contacts; the installed SDK's types predate
+      // that error code, so check the raw name rather than narrow it away.
+      const errorName = result.error.name as string;
+      if (errorName === "restricted_api_key") {
+        if (!warnedRestrictedApiKey) {
+          console.warn(
+            "Resend audience upsert skipped: RESEND_API_KEY is sending-only. " +
+              "A full-access key is needed for audience sync; see README."
+          );
+          warnedRestrictedApiKey = true;
+        }
+        return;
+      }
+      console.error("Resend audience upsert failed", result.error);
+    }
   } catch (err) {
     console.error("Resend audience upsert failed", err);
   }

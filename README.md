@@ -26,7 +26,9 @@ infisical run --env=dev -- npm run dev
 
 The repo's `.infisical.json` binds it to the devrel.md Infisical project (EU, workspace `be37b6f4-0afa-4772-a1df-e01992b7dc9a`). It holds no secret itself. Secrets only ever come from that project, never from any other. Run every command that touches the database or calls OpenRouter/Resend/Folk through `infisical run --env=dev --`, from this directory or its parent (the CLI walks up to find `.infisical.json`).
 
-Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log instead of sending/pushing) and the Turnstile keys defaulted to Cloudflare's documented always-pass test pair. See `.env.example` for every variable.
+Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log instead of sending/pushing) and the Turnstile keys defaulted to Cloudflare's documented always-pass test pair (`TURNSTILE_SITE_KEY`, `TURNSTILE_SITE_SECRET`; `TURNSTILE_SECRET_KEY` also works, as a fallback for the brief's original naming). See `.env.example` for every variable.
+
+`RESEND_API_KEY` only needs to be a sending key for email to work. Audience upserts (`RESEND_AUDIENCE_ID`) need a full-access key: with a sending-only key, `lib/resend.ts` logs once and skips the audience sync rather than failing the lead flow or the outbox.
 
 ### Content submodules
 
