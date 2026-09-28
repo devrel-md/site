@@ -12,6 +12,7 @@ export interface GenerateSuccess {
   markdown: string;
   model: string;
   costUsd: number;
+  resultId: string | null;
 }
 
 export interface GenerateFailure {
@@ -61,6 +62,9 @@ export async function generateDevrelMd(params: {
   inputUrl: string;
   onDelta?: (chunk: string) => void;
   onModelStart?: (model: string) => void;
+  /** Called once validation passes, before the attempt is logged, so the
+   * logged attempt can carry the resulting row's id. */
+  persistResult?: (markdown: string, model: string, costUsd: number) => Promise<string>;
 }): Promise<GenerateOutcome> {
   const chain = await buildChain();
   if (chain.length === 0) {
@@ -118,10 +122,17 @@ export async function generateDevrelMd(params: {
 
     const { result } = outcome;
     const problems = validate(result.text);
+    const servedModel = result.servedModel ?? step.model;
+    const markdown = result.text.trim();
+
+    let resultId: string | null = null;
+    if (problems.length === 0 && params.persistResult) {
+      resultId = await params.persistResult(markdown, servedModel, result.costUsd);
+    }
 
     await logAttempt({
-      resultId: null,
-      model: result.servedModel ?? step.model,
+      resultId,
+      model: servedModel,
       outcome: problems.length === 0 ? "success" : "quality_fail",
       firstTokenMs: result.firstTokenMs,
       totalMs: result.totalMs,
@@ -131,12 +142,7 @@ export async function generateDevrelMd(params: {
     });
 
     if (problems.length === 0) {
-      return {
-        status: "success",
-        markdown: result.text.trim(),
-        model: result.servedModel ?? step.model,
-        costUsd: result.costUsd,
-      };
+      return { status: "success", markdown, model: servedModel, costUsd: result.costUsd, resultId };
     }
   }
 

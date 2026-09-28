@@ -69,6 +69,17 @@ export async function POST(request: Request): Promise<Response> {
         const outcome = await generateDevrelMd({
           inputUrl: rawUrl,
           onDelta: (chunk) => controller.enqueue(encoder.encode(sseEvent("delta", chunk))),
+          persistResult: async (markdown, model, costUsd) => {
+            const result = await createResult({
+              url: rawUrl,
+              normalisedUrl: normalised,
+              markdown,
+              gates: extractFunnelGates(markdown),
+              model,
+              costUsd,
+            });
+            return result.id;
+          },
         });
 
         if (outcome.status === "capped") {
@@ -99,17 +110,7 @@ export async function POST(request: Request): Promise<Response> {
           return;
         }
 
-        const gates = extractFunnelGates(outcome.markdown);
-        const result = await createResult({
-          url: rawUrl,
-          normalisedUrl: normalised,
-          markdown: outcome.markdown,
-          gates,
-          model: outcome.model,
-          costUsd: outcome.costUsd,
-        });
-
-        controller.enqueue(encoder.encode(sseEvent("done", { id: result.id, status: "success" })));
+        controller.enqueue(encoder.encode(sseEvent("done", { id: outcome.resultId, status: "success" })));
         controller.close();
       } catch (err) {
         console.error("generate stream failed", err);
