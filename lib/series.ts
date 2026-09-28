@@ -29,7 +29,7 @@ export async function scheduleSeries(leadId: string, gates: FunnelGate[]): Promi
 
   for (const row of rows) {
     await query(
-      `insert into outbox (lead_id, template, send_after) values ($1, $2, now() + ($3 || ' days')::interval)`,
+      `insert into outbox (lead_id, template, send_after) values ($1, $2, now() + make_interval(days => $3))`,
       [leadId, row.template, row.dayOffset]
     );
   }
