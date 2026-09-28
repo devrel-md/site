@@ -8,6 +8,14 @@ import { pushToFolk } from "@/lib/folk";
 import { scheduleSeries } from "@/lib/series";
 import { env } from "@/lib/env";
 import { unlockCookieName } from "@/lib/unlock";
+import { escapeHtml } from "@/lib/html";
+
+function errorPage(message: string, status: number, backHref: string): Response {
+  return new Response(
+    `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Could not unlock</title><link rel="stylesheet" href="/styles.css"></head><body><main><h1>${escapeHtml(message)}</h1><p><a href="${escapeHtml(backHref)}">Back</a></p></main></body></html>`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
 
 export async function POST(request: Request): Promise<Response> {
   const form = await request.formData();
@@ -20,10 +28,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const result = await getResult(resultId);
   if (!result) {
-    return NextResponse.json({ error: "Unknown result." }, { status: 404 });
+    return errorPage("That result does not exist.", 404, "/");
   }
   if (!email.includes("@") || !company || !ROLES.includes(role as (typeof ROLES)[number]) || !TEAM_SIZES.includes(teamSize as (typeof TEAM_SIZES)[number])) {
-    return NextResponse.json({ error: "Fill in every field." }, { status: 400 });
+    return errorPage("Fill in every field, then try again.", 400, `/r/${resultId}`);
   }
 
   const lead = await createLead({ email, company, role, teamSize, seriesOptIn, resultId });
@@ -35,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
   await sendEmail({
     to: email,
     subject: `Your DEVREL.md for ${company}`,
-    html: `<p>Here is the DEVREL.md draft for ${company}, attached and online at ${env.siteUrl}/r/${result.id}.</p>`,
+    html: `<p>Here is the DEVREL.md draft for ${escapeHtml(company)}, attached and online at ${env.siteUrl}/r/${result.id}.</p>`,
     text: `Here is the DEVREL.md draft for ${company}, attached and online at ${env.siteUrl}/r/${result.id}.`,
     leadToken: lead.lead_token,
     attachment: { filename: "DEVREL.md", content: Buffer.from(result.markdown, "utf8").toString("base64") },
