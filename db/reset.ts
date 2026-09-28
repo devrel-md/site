@@ -1,5 +1,7 @@
 // Dev convenience only: drops every table this app owns and re-runs
-// migrations from scratch. Never run against anything but a local database.
+// migrations from scratch. Never run against anything but the dev database.
+// Dev Postgres is a dedicated container (devrelmd-db), so requiring the
+// database name to be "devrelmd" is a meaningful guard, not a formality.
 import { Pool } from "pg";
 
 async function main() {
@@ -7,8 +9,11 @@ async function main() {
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set.");
   }
-  if (!databaseUrl.includes("localhost") && !databaseUrl.includes("127.0.0.1")) {
-    throw new Error("db:reset refuses to run against a non-local DATABASE_URL.");
+  const database = new URL(databaseUrl).pathname.replace(/^\//, "");
+  if (database !== "devrelmd") {
+    throw new Error(
+      `db:reset refuses to run against database "${database}": only the dev database (devrelmd) is allowed.`
+    );
   }
 
   const pool = new Pool({ connectionString: databaseUrl });

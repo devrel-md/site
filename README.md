@@ -14,16 +14,17 @@ Only `/generate` (the interactive form) and its `GenerateForm` client component 
 
 ## Setup
 
-Prerequisites: Node 20+, Docker, the [Infisical CLI](https://infisical.com/docs/cli/overview), `gh` (for the submodules, if you need to re-clone them).
+Prerequisites: Node 20+, the [Infisical CLI](https://infisical.com/docs/cli/overview), `gh` (for the submodules, if you need to re-clone them).
+
+There is no local Postgres and no Docker for local development: dev Postgres runs in a dedicated container (`devrelmd-db`, `postgres:16-alpine`) on the home server, reachable over the tailnet, and `DATABASE_URL` for it lives in Infisical. Don't try to run Postgres in Docker on your own machine for this project.
 
 ```bash
 npm install
-docker compose up -d
-infisical run --env=dev --path=/ -- npm run migrate
-infisical run --env=dev --path=/ -- npm run dev
+infisical run --env=dev -- npm run migrate
+infisical run --env=dev -- npm run dev
 ```
 
-The repo's `.infisical.json` binds it to the devrel.md Infisical project (EU, workspace `be37b6f4-0afa-4772-a1df-e01992b7dc9a`). It holds no secret itself. Secrets only ever come from that project, never from any other.
+The repo's `.infisical.json` binds it to the devrel.md Infisical project (EU, workspace `be37b6f4-0afa-4772-a1df-e01992b7dc9a`). It holds no secret itself. Secrets only ever come from that project, never from any other. Run every command that touches the database or calls OpenRouter/Resend/Folk through `infisical run --env=dev --`, from this directory or its parent (the CLI walks up to find `.infisical.json`).
 
 Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log instead of sending/pushing) and the Turnstile keys defaulted to Cloudflare's documented always-pass test pair. See `.env.example` for every variable.
 
@@ -82,7 +83,7 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers), th
 
 ## Local end-to-end run
 
-See `docs/local-e2e.md` for a recorded run: `docker compose up`, migrations applied, one real generation against `https://resend.com` through OpenRouter, a lead captured with Resend unset, and the result page rendering.
+See `docs/local-e2e.md` for a recorded run against the dev database on porg: migrations applied, one real generation against `https://resend.com` through OpenRouter, a lead captured with Resend and Folk unset, and the result page rendering.
 
 ## Agent readiness
 
