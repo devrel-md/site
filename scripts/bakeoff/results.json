@@ -1,0 +1,93 @@
+[
+ {
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "error": "{'message': 'Upstream error from Nvidia: Service temporarily overloaded', 'code': 503, 'metadata': {'error_type': 'provider_overloaded'}}",
+  "secs": 16.2
+ },
+ {
+  "model": "qwen/qwen3.8-27b:free",
+  "error": "HTTP Error 429: Too Many Requests",
+  "secs": 0.5
+ },
+ {
+  "model": "google/gemma-4-31b-it:free",
+  "error": "HTTP Error 429: Too Many Requests",
+  "secs": 0.3
+ },
+ {
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "served": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "secs": 185.3,
+  "in": 27680,
+  "out": 3955,
+  "cost": 0,
+  "finish": "stop",
+  "problems": [],
+  "file": "nvidia-nemotron-3-ultra-550b-a55b-free.md"
+ },
+ {
+  "model": "deepseek/deepseek-v4-flash",
+  "served": "deepseek/deepseek-v4-flash",
+  "secs": 28.9,
+  "in": 24083,
+  "out": 2546,
+  "cost": 0.00398137,
+  "finish": "stop",
+  "problems": [
+   "bad stage 'growth (inferred)'",
+   "funnel row Awareness missing"
+  ],
+  "file": "deepseek-deepseek-v4-flash.md"
+ },
+ {
+  "model": "google/gemini-2.5-flash-lite",
+  "served": "google/gemini-2.5-flash-lite",
+  "secs": 7.0,
+  "in": 28932,
+  "out": 1720,
+  "cost": 0.0035812,
+  "finish": "stop",
+  "problems": [
+   "wrapped in code fence",
+   "missing section Product"
+  ],
+  "file": "google-gemini-2-5-flash-lite.md"
+ },
+ {
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "served": "nvidia/nemotron-3-super-120b-a12b",
+  "secs": 207.8,
+  "in": 27680,
+  "out": 3127,
+  "cost": 0.00362155,
+  "finish": "stop",
+  "problems": [
+   "bad stage 'growth (inferred)'"
+  ],
+  "file": "nvidia-nemotron-3-super-120b-a12b.md"
+ },
+ {
+  "model": "qwen/qwen3.8-flash",
+  "served": "qwen/qwen3.8-flash",
+  "secs": 109.9,
+  "in": 27767,
+  "out": 8000,
+  "cost": 0.00792505,
+  "finish": "length",
+  "problems": [
+   "no frontmatter"
+  ],
+  "file": "qwen-qwen3-8-flash.md"
+ },
+ {
+  "model": "openai/gpt-6-luna",
+  "served": "openai/gpt-6-luna",
+  "secs": 25.7,
+  "in": 23432,
+  "out": 2403,
+  "cost": 0.004130425,
+  "finish": "stop",
+  "problems": [],
+  "file": "openai-gpt-6-luna.md"
+ }
+]
