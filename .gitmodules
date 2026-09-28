@@ -1,0 +1,6 @@
+[submodule "content/spec"]
+	path = content/spec
+	url = https://github.com/devrel-md/spec
+[submodule "content/skills"]
+	path = content/skills
+	url = https://github.com/mplacona/devrel-skills
