@@ -1,0 +1,12 @@
+{
+  "name": "devrel-skills",
+  "owner": { "name": "Marcos Placona", "url": "https://devrel.md" },
+  "plugins": [
+    {
+      "name": "devrel-skills",
+      "source": "./",
+      "description": "Developer relations skills built from How to Build Developer Ecosystems. Every skill reads your DEVREL.md first.",
+      "version": "0.1.0"
+    }
+  ]
+}

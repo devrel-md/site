@@ -14,8 +14,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Content lives in git submodules. The build context must include them
-# (checked out with --recurse-submodules before `docker build`).
+# Content is plain files in content/ (synced copies of devrel-md/spec and
+# devrel-md/skills), so a plain clone is a complete build context.
 ARG GIT_COMMIT_SHA=unknown
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
 ENV NEXT_TELEMETRY_DISABLED=1
