@@ -4,13 +4,17 @@ The open DEVREL.md spec and a free skill library, plus a generator that drafts a
 
 ## Why it looks the way it does
 
-The site is the file. Every content page (`/`, `/example`, `/template`, `/skills`, `/skills/[name]`, `/privacy`, `/changelog`, `/api`, `/r/[id]`) is a Route Handler, not a React page. Each one:
+The site is the file. Every content page (`/`, `/spec`, `/example`, `/template`, `/skills`, `/skills/[name]`, `/validate`, `/privacy`, `/changelog`, `/api`, `/r/[id]`) is a Route Handler, not a React page. Each one:
 
 - Renders the same Markdown to full server-side HTML for browsers.
 - Returns the raw Markdown, unchanged, for `curl`, `wget`, `HTTPie` and anything else sending `Accept: text/markdown` or a wildcard `Accept` from a non-browser user agent, or for the matching `<path>.md` route.
 - Sends `Vary: Accept, User-Agent` and a `Link: <path.md>; rel="alternate"; type="text/markdown"` header either way.
 
 Only `/generate` (the interactive form) and its `GenerateForm` client component use React for anything beyond the page shell, because that page genuinely needs client-side streaming. Everything else is a plain HTML string built server-side, on purpose: it keeps the negotiation logic in one place (`lib/negotiate.ts`, `lib/contentRoute.ts`) instead of splitting it between a page and a parallel API route.
+
+`/` is `content/home.md`, a welcoming page styled like agents.md: generous whitespace, a two-card "Without / With DEVREL.md" comparison, and an FAQ that scans as a list of `<details>` questions rather than a wall of headings (`lib/homeMarkdown.ts` restructures those two sections after the normal Markdown pipeline runs; everything else on the page is the same pipeline as any other page). The full specification lives at `/spec` (moved there from `/` when the home page shipped).
+
+`/validate` (+ `POST /api/validate`) runs the same quality gate the generator uses against a pasted DEVREL.md, with a plain-language fix for every problem (`lib/validateExplain.ts`) and the stage-gates summary when the file is parseable enough to have one. No login, no storage beyond a rate-limit counter, and its own daily budget separate from the generator's, since it never calls a paid model.
 
 ## Setup
 
@@ -55,7 +59,7 @@ scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
 
 ### Data
 
-Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `leads`, `outbox`, `clicks`, `rate_limits`. IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. `npm run delete-lead -- <email>` removes a lead and their outbox rows, the DELETE path required by the privacy notice.
+Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `leads`, `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. `npm run delete-lead -- <email>` removes a lead and their outbox rows, the DELETE path required by the privacy notice.
 
 ### The generator's fallback chain
 
@@ -81,7 +85,7 @@ npm run build
 npm test
 ```
 
-Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers), the SSRF guard (private ranges, blocked redirects), the validator (all 6 bake-off fixtures, asserted against the same problems `scripts/bakeoff/results.json` recorded), the fallback order and circuit breaker (OpenRouter mocked), the spend cap, `/go` redirects with UTM params, lead qualification, and unsubscribe.
+Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, including `/`, `/spec` and `/validate`), the SSRF guard (private ranges, blocked redirects), the validator (all 6 bake-off fixtures, asserted against the same problems `scripts/bakeoff/results.json` recorded), the fallback order and circuit breaker (OpenRouter mocked), the spend cap, `/go` redirects with UTM params, lead qualification, unsubscribe, `POST /api/validate` (both body formats, the rate limit, its own budget separate from the generator's), and the home page's FAQ/comparison restructuring.
 
 ## Local end-to-end run
 
