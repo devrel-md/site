@@ -169,6 +169,11 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
         </div>
       )}
 
+      {streaming && !output && (
+        <p className="form-hint" role="status">
+          Reading your docs and drafting the file. The first lines usually appear within 20 seconds; the whole draft can take a minute or two.
+        </p>
+      )}
       {output && (
         <pre className="install-block" aria-live="polite" style={{ whiteSpace: "pre-wrap" }}>
           {output}
