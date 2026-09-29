@@ -1,11 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Script from "next/script";
+
+type TurnstileOptions = {
+  sitekey: string;
+  callback: (token: string) => void;
+  "error-callback": (code?: string) => void;
+  "expired-callback": () => void;
+  "timeout-callback": () => void;
+};
 
 declare global {
   interface Window {
-    onDevrelmdTurnstile?: (token: string) => void;
+    turnstile?: {
+      render: (el: HTMLElement, opts: TurnstileOptions) => string;
+      reset: (id?: string) => void;
+    };
   }
 }
 
@@ -18,12 +29,48 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
   const [alternative, setAlternative] = useState<string | null>(null);
   const redirectRef = useRef<string | null>(null);
 
-  if (typeof window !== "undefined") {
-    window.onDevrelmdTurnstile = (t: string) => setToken(t);
-  }
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [submitHint, setSubmitHint] = useState<string | null>(null);
+  const widgetRef = useRef<HTMLDivElement | null>(null);
+  const widgetId = useRef<string | null>(null);
+
+  const renderWidget = useCallback(() => {
+    if (!window.turnstile || !widgetRef.current || widgetId.current) return;
+    widgetId.current = window.turnstile.render(widgetRef.current, {
+      sitekey: turnstileSiteKey,
+      callback: (t) => {
+        setToken(t);
+        setVerifyError(null);
+        setSubmitHint(null);
+      },
+      "error-callback": (code) => {
+        setToken("");
+        setVerifyError(
+          `We couldn't confirm you're human${code ? ` (error ${code})` : ""}. Refresh the page and try again. If it keeps happening, email hello@devrel.md.`,
+        );
+      },
+      "expired-callback": () => {
+        setToken("");
+        setVerifyError("The check expired. It will refresh automatically, or reload the page.");
+      },
+      "timeout-callback": () => {
+        setToken("");
+        setVerifyError("The check timed out. Reload the page to try again.");
+      },
+    });
+  }, [turnstileSiteKey]);
+
+  // The script may already be loaded when this component mounts (client-side navigation).
+  useEffect(() => {
+    renderWidget();
+  }, [renderWidget]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (!token) {
+      setSubmitHint(verifyError ?? "Still checking you're human. This usually takes a second or two.");
+      return;
+    }
     setError(null);
     setAlternative(null);
     setOutput("");
@@ -85,7 +132,7 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
 
   return (
     <>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={renderWidget} onReady={renderWidget} />
       <form className="generate-form" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="url">Docs or home page URL</label>
@@ -99,12 +146,18 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
             disabled={streaming}
           />
         </div>
-        <div
-          className="cf-turnstile"
-          data-sitekey={turnstileSiteKey}
-          data-callback="onDevrelmdTurnstile"
-        />
-        <button className="primary" type="submit" disabled={streaming || !token || !url}>
+        <div ref={widgetRef} className="turnstile-widget" />
+        {verifyError && (
+          <p className="form-error" role="alert">
+            {verifyError}
+          </p>
+        )}
+        {submitHint && !verifyError && (
+          <p className="form-hint" role="status">
+            {submitHint}
+          </p>
+        )}
+        <button className="primary" type="submit" disabled={streaming || !url}>
           {streaming ? "Generating..." : "Generate"}
         </button>
       </form>
