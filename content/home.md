@@ -90,6 +90,12 @@ The [devrel.md skills](/skills) read it automatically: quickstart friction check
 - **Marketing copy in the value proposition.** "The AI-native platform for modern teams" fails the test. A developer should know in one read whether it applies to them.
 - **Writing it once and forgetting it.** Update it when a number moves, and bump `updated`.
 
+## The framework behind it
+
+DEVREL.md didn't come from nowhere. Its five funnel stages, the stage gates, the ICP fit score and the benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home) by Amir Shevat and Marcos Placona, a practical framework for developer-led growth drawn from building developer programmes at companies like Slack, Twitter, Google, Microsoft and Twilio.
+
+The book explains the thinking: why time to Hello World is the North Star, why activation isn't the same as integration, and why you shouldn't scale a stage until the one before it works. DEVREL.md turns that thinking into a file your agents can use. [About the book](/go/book?c=home).
+
 ## FAQ
 
 ### How is this different from README.md, AGENTS.md and llms.txt?
@@ -122,4 +128,4 @@ One DEVREL.md per developer product, in that product's folder. The nearest file 
 
 ### Who maintains it?
 
-Created and maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](https://devrelbridge.com/book) by Amir Shevat and Marcos Placona. [Read the full specification](/spec).
+Created and maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home-faq) by Amir Shevat and Marcos Placona. [Read the full specification](/spec).
