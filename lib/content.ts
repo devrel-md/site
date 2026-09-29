@@ -6,12 +6,17 @@ import path from "node:path";
 import matter from "gray-matter";
 
 const ROOT = process.cwd();
+const CONTENT_DIR = path.join(ROOT, "content");
 const SPEC_DIR = path.join(ROOT, "content", "spec");
 const SKILLS_DIR = path.join(ROOT, "content", "skills", "skills");
 const SITE_DIR = path.join(ROOT, "content", "site");
 
 async function read(filePath: string): Promise<string> {
   return readFile(filePath, "utf8");
+}
+
+export async function readHome(): Promise<string> {
+  return read(path.join(CONTENT_DIR, "home.md"));
 }
 
 export async function readSpec(): Promise<string> {
@@ -36,6 +41,10 @@ export async function readChangelog(): Promise<string> {
 
 export async function readApiReference(): Promise<string> {
   return read(path.join(SITE_DIR, "api.md"));
+}
+
+export async function readValidateDescription(): Promise<string> {
+  return read(path.join(SITE_DIR, "validate.md"));
 }
 
 export interface SkillFrontmatter {

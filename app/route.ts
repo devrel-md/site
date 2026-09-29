@@ -1,14 +1,23 @@
-import { contentRoute } from "@/lib/contentRoute";
-import { readSpec } from "@/lib/content";
-import { frontmatterPanelHtml } from "@/lib/frontmatterPanel";
+import { wantsMarkdown, markdownResponse, htmlResponse } from "@/lib/negotiate";
+import { renderPage } from "@/lib/page";
+import { renderHomeHtml } from "@/lib/homeMarkdown";
+import { readHome } from "@/lib/content";
 
-export const GET = contentRoute({
-  path: "/",
-  mdPath: "/index.md",
-  title: "DEVREL.md: the spec",
-  description:
-    "DEVREL.md tells people and AI agents who a developer product is for, what first success looks like, and where the developer journey is healthy or broken.",
-  load: readSpec,
-  preContent: (frontmatter) =>
-    `${frontmatterPanelHtml(frontmatter)}\n<p>Prefer to skip straight to code? See the <a href="/api#quickstart">API quickstart</a> for the generator, or paste a URL straight into <a href="/generate">/generate</a>.</p>`,
-});
+export async function GET(request: Request): Promise<Response> {
+  const markdown = await readHome();
+
+  if (wantsMarkdown(request, false)) {
+    return markdownResponse(markdown, "/index.md");
+  }
+
+  const { html } = await renderHomeHtml(markdown);
+  const page = renderPage({
+    title: "DEVREL.md",
+    description:
+      "A README for your developer funnel. DEVREL.md tells people and AI agents who your developers are, what their first success looks like, and where they get stuck.",
+    path: "/",
+    bodyHtml: html,
+    bodyClassName: "home",
+  });
+  return htmlResponse(page, "/index.md");
+}
