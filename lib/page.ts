@@ -10,12 +10,15 @@ export interface PageOptions {
   preContent?: string;
   /** Extra content injected right before </main> (e.g. a lead form, a raw toggle). */
   postContent?: string;
+  /** Added to <body>, for page-specific CSS scoping (e.g. the home page's layout). */
+  bodyClassName?: string;
 }
 
 const NAV = [
-  { href: "/", label: "Spec" },
+  { href: "/spec", label: "Spec" },
   { href: "/skills", label: "Skills" },
   { href: "/generate", label: "Generate" },
+  { href: "/validate", label: "Validate" },
 ];
 
 function themeScript(): string {
@@ -41,8 +44,9 @@ function toggleScript(): string {
 }
 
 export function renderPage(options: PageOptions): string {
-  const { title, description, path, bodyHtml, preContent = "", postContent = "" } = options;
+  const { title, description, path, bodyHtml, preContent = "", postContent = "", bodyClassName } = options;
   const canonical = `${env.siteUrl}${path}`;
+  const bodyAttr = bodyClassName ? ` class="${escapeHtml(bodyClassName)}"` : "";
 
   const navLinks = NAV.map(
     (item) =>
@@ -61,7 +65,7 @@ export function renderPage(options: PageOptions): string {
 <link rel="stylesheet" href="/styles.css">
 <meta name="color-scheme" content="light dark">
 </head>
-<body>
+<body${bodyAttr}>
 <header class="site-header">
   <nav>
     <a class="wordmark" href="/">DEVREL.md</a>

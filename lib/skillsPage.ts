@@ -35,7 +35,7 @@ export async function skillsCatalogHtml(): Promise<string> {
     .join("\n");
 
   return `<h1>Skills</h1>
-<p>Free skills built from <em>How to Build Developer Ecosystems</em> by Amir Shevat and Marcos Placona. Every skill reads your <a href="/">DEVREL.md</a> first, so you only explain your product once. Start with <a href="/skills/devrel-md-init">devrel-md-init</a>.</p>
+<p>Free skills built from <em>How to Build Developer Ecosystems</em> by Amir Shevat and Marcos Placona. Every skill reads your <a href="/spec">DEVREL.md</a> first, so you only explain your product once. Start with <a href="/skills/devrel-md-init">devrel-md-init</a>.</p>
 <ul class="skill-list">
 ${items}
 </ul>

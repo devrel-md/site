@@ -1,6 +1,6 @@
 # API reference
 
-devrel.md has one API: the generator. No API key, no account and no sales call. The full machine-readable description is at [`/openapi.json`](/openapi.json).
+devrel.md has two APIs: the generator and the validator. Neither needs an API key, an account or a sales call. The full machine-readable description is at [`/openapi.json`](/openapi.json).
 
 ## Quickstart
 
@@ -47,6 +47,18 @@ There is no separate staging environment: it is the same generator everyone else
 - A cached result (the same URL generated in the last 24 hours) returns immediately instead of running the model again.
 - If every model in the fallback chain fails, the stream ends with an `error` event and a plain-language message. Nothing is charged or stored for a failed run.
 
+## Validate a DEVREL.md
+
+No token needed. See [`/validate`](/validate) for the full description, or call it directly:
+
+```bash
+curl -X POST https://devrel.md/api/validate \
+  -H "Content-Type: text/markdown" \
+  --data-binary @DEVREL.md
+```
+
+Rate limited separately from the generator, since it calls no paid model.
+
 ## Every other page
 
-Every content page on devrel.md, not only the generator, is available as Markdown: send `Accept: text/markdown`, request `<path>.md`, or just use `curl`, which gets Markdown by default. See the [spec](/) for what each page contains.
+Every content page on devrel.md, not only the generator, is available as Markdown: send `Accept: text/markdown`, request `<path>.md`, or just use `curl`, which gets Markdown by default. See the [spec](/spec) for what each page contains.

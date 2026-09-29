@@ -1,5 +1,5 @@
 import { env } from "@/lib/env";
-import { readSpec, readTemplate, readExample, listSkills, readSkillMarkdown } from "@/lib/content";
+import { readHome, readSpec, readTemplate, readExample, listSkills, readSkillMarkdown } from "@/lib/content";
 
 export async function buildLlmsTxt(): Promise<string> {
   const skills = await listSkills();
@@ -13,7 +13,8 @@ export async function buildLlmsTxt(): Promise<string> {
 
 ## Spec
 
-- [The spec](${env.siteUrl}/): the full DEVREL.md specification, required sections, frontmatter and default stage gates
+- [Home](${env.siteUrl}/): what DEVREL.md is and how to use it
+- [The spec](${env.siteUrl}/spec): the full DEVREL.md specification, required sections, frontmatter and default stage gates
 - [Template](${env.siteUrl}/template): a blank DEVREL.md ready to fill in
 - [Example](${env.siteUrl}/example): a filled-in DEVREL.md for a fictional product
 
@@ -22,9 +23,10 @@ export async function buildLlmsTxt(): Promise<string> {
 - [Skill catalog](${env.siteUrl}/skills): every skill, what it does and how to install it
 ${skillLinks}
 
-## Generator
+## Generator and validator
 
 - [Generate a DEVREL.md](${env.siteUrl}/generate): paste a product's docs or home URL and get a draft in about half a minute
+- [Validate a DEVREL.md](${env.siteUrl}/validate): paste a file and get the same quality check the generator uses
 - [API reference](${env.siteUrl}/api): the generator's HTTP API, no key required
 - [OpenAPI document](${env.siteUrl}/openapi.json)
 
@@ -37,7 +39,8 @@ ${skillLinks}
 }
 
 export async function buildLlmsFullTxt(): Promise<string> {
-  const [spec, template, example, skills] = await Promise.all([
+  const [home, spec, template, example, skills] = await Promise.all([
+    readHome(),
     readSpec(),
     readTemplate(),
     readExample(),
@@ -53,7 +56,8 @@ export async function buildLlmsFullTxt(): Promise<string> {
 
   return [
     `<!-- ${env.siteUrl}/ -->`,
-    spec,
+    home,
+    `\n\n---\n\n<!-- ${env.siteUrl}/spec -->\n\n${spec}`,
     `\n\n---\n\n<!-- ${env.siteUrl}/template -->\n\n${template}`,
     `\n\n---\n\n<!-- ${env.siteUrl}/example -->\n\n${example}`,
     ...skillSections,
