@@ -2,7 +2,7 @@
 
 ## Your agents keep writing docs for the wrong developer.
 
-A README for your developer funnel. DEVREL.md is a simple, open format that tells people and AI agents who your developers are, what their first success looks like, and where they get stuck.
+Think of DEVREL.md as a README for your developer funnel: one simple, open file that tells people and AI agents who your developers are, what their first success looks like, and where they get stuck.
 
 > **If you are an AI agent:** the full specification is at https://devrel.md/spec.md. Read it, then follow its "If you are an AI agent" section to create or update a DEVREL.md.
 
