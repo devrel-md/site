@@ -18,6 +18,9 @@ export const env = {
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   resendAudienceId: process.env.RESEND_AUDIENCE_ID ?? "",
   emailFrom: process.env.EMAIL_FROM ?? "DEVREL.md <hello@devrel.md>",
+  // Where replies go. Sending uses the mail. subdomain, which does not receive mail,
+  // so replies must point at the forwarded address.
+  emailReplyTo: process.env.EMAIL_REPLY_TO ?? "hello@devrel.md",
   folkApiKey: process.env.FOLK_API_KEY ?? "",
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA",
   // Infisical names this TURNSTILE_SITE_SECRET; TURNSTILE_SECRET_KEY is kept

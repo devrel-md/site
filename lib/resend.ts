@@ -43,6 +43,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
   const result = await getClient().emails.send({
     from: env.emailFrom,
+    replyTo: env.emailReplyTo,
     to: params.to,
     subject: params.subject,
     html: params.html,
