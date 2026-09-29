@@ -18,7 +18,7 @@ Only `/generate` (the interactive form) and its `GenerateForm` client component 
 
 ## Setup
 
-Prerequisites: Node 20+, the [Infisical CLI](https://infisical.com/docs/cli/overview), `gh` (for the submodules, if you need to re-clone them).
+Prerequisites: Node 20+ and the [Infisical CLI](https://infisical.com/docs/cli/overview).
 
 There is no local Postgres and no Docker for local development: dev Postgres runs in a dedicated container (`devrelmd-db`, `postgres:16-alpine`) on the home server, reachable over the tailnet, and `DATABASE_URL` for it lives in Infisical. Don't try to run Postgres in Docker on your own machine for this project.
 
@@ -34,13 +34,9 @@ Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log inste
 
 `RESEND_API_KEY` only needs to be a sending key for email to work. Audience upserts (`RESEND_AUDIENCE_ID`) need a full-access key: with a sending-only key, `lib/resend.ts` logs once and skips the audience sync rather than failing the lead flow or the outbox.
 
-### Content submodules
+### Synced content
 
-`content/spec` (`devrel-md/spec`) and `content/skills` (`devrel-md/skills`) are git submodules, both private. The site reads them at request time; it never copies their content by hand. If they are empty after cloning:
-
-```bash
-git submodule update --init --recursive
-```
+`content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request (run it after changing either source). They're plain files (not submodules) so every builder, OpenShip, Dokploy previews and a fresh clone, gets them without extra credentials.
 
 ## Architecture
 
@@ -52,7 +48,7 @@ lib/                    Everything else: content loading, Markdown, negotiation,
 db/migrations/          Plain numbered SQL, applied by db/migrate.ts (no ORM)
 emails/                 Markdown + frontmatter templates for the result email and
                          the (currently disabled) failing-gate series
-content/spec, content/skills   Git submodules: the spec and the skill library
+content/spec, content/skills   Synced copies of the spec and the skill library
 scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
                          quality gate are ported from (kept for reference)
 ```

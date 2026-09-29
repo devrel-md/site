@@ -55,7 +55,7 @@ Only one applicable check was short of a full pass on this run:
 - Whether the docs are strategically right for the product's actual audience and positioning.
 - Whether an MCP server or agent-facing integration is the right fit, and whether its actions are safe for an agent to call without supervision. Check 18 passed on the Claude Code plugin install being documented; a person should still confirm the skills themselves are safe to run unsupervised (they are read-only by design, per each `SKILL.md`, but that is a claim to verify, not a mechanical check).
 - Whether tone, terminology and examples match the brand voice, particularly the home page and quickstart copy.
-- This run was done by hand (the `agent-readiness-check` skill from the `devrel-skills` submodule is not installed as a Claude Code skill in this session), cross-checked with a small local script for the mechanical counts (heading ids, code-block languages, section word counts). Re-run with the actual skill, and against the real `https://devrel.md` origin, before relying on this score for a launch decision.
+- This run was done by hand (the `agent-readiness-check` skill from `content/skills` is not installed as a Claude Code skill in this session), cross-checked with a small local script for the mechanical counts (heading ids, code-block languages, section word counts). Re-run with the actual skill, and against the real `https://devrel.md` origin, before relying on this score for a launch decision.
 - Check 5's "not applicable" call is a judgement call specific to devrel.md's shape as a spec-and-skills site rather than a conventional docs site with a separate `/docs` section.
 
 ### Score history

@@ -1,0 +1,10 @@
+{
+  "name": "devrel-skills",
+  "version": "0.1.0",
+  "description": "Developer relations skills built from How to Build Developer Ecosystems. Every skill reads your DEVREL.md first.",
+  "author": { "name": "Marcos Placona", "url": "https://devrelbridge.com" },
+  "homepage": "https://devrel.md",
+  "repository": "https://github.com/devrel-md/skills",
+  "license": "MIT",
+  "keywords": ["devrel", "developer-relations", "developer-experience", "docs", "onboarding", "DEVREL.md"]
+}
