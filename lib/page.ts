@@ -1,6 +1,6 @@
 import { escapeHtml } from "@/lib/html";
 import { env } from "@/lib/env";
-import { siteHeaderHtml, siteFooterHtml, themeScript, toggleScript } from "@/lib/siteLayout";
+import { siteHeaderHtml, siteFooterHtml, headMetaHtml, themeScript, toggleScript } from "@/lib/siteLayout";
 
 export interface PageOptions {
   title: string;
@@ -81,6 +81,7 @@ export function renderPage(options: PageOptions): string {
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}">
 <link rel="canonical" href="${canonical}">
+${headMetaHtml({ siteUrl: env.siteUrl, title, description, canonical })}
 <link rel="stylesheet" href="/styles.css">
 <meta name="color-scheme" content="light dark">
 </head>

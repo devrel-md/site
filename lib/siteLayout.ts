@@ -17,6 +17,36 @@ export const NAV = [
 export const DEVREL_BRIDGE_URL = "https://devrelbridge.com/?utm_source=devrel.md&utm_medium=footer";
 export const BOOK_URL = "https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer";
 
+// The brand mark (braces around a dot), inline so it follows the theme through
+// currentColor. Decorative: the wordmark text next to it is the accessible name.
+export const MARK_SVG =
+  '<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g stroke="currentColor" fill="currentColor"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="7,3 5,3 5,10 2.8,12 5,14 5,21 7,21"/><polyline points="17,3 19,3 19,10 21.2,12 19,14 19,21 17,21"/></g><circle cx="12" cy="12" r="3.6" stroke="none"/></g></svg>';
+
+export const OG_IMAGE_PATH = "/opengraph-image.png";
+
+/** Icon links, plus Open Graph and Twitter tags, for the <head> of the hand-built HTML routes.
+ * The React pages get the same set through the metadata export in app/layout.tsx. */
+export function headMetaHtml(opts: { siteUrl: string; title: string; description: string; canonical: string }): string {
+  const image = `${opts.siteUrl}${OG_IMAGE_PATH}`;
+  const t = escapeHtml(opts.title);
+  const d = escapeHtml(opts.description);
+  return `<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-icon.png">
+<meta property="og:site_name" content="DEVREL.md">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${t}">
+<meta property="og:description" content="${d}">
+<meta property="og:url" content="${escapeHtml(opts.canonical)}">
+<meta property="og:image" content="${image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${t}">
+<meta name="twitter:description" content="${d}">
+<meta name="twitter:image" content="${image}">`;
+}
+
 export function themeScript(): string {
   // Runs before paint to avoid a flash of the wrong theme. Reading is fine
   // without this ever running: it only affects which colour scheme shows.
@@ -56,7 +86,7 @@ export function siteHeaderHtml(path: string): string {
 
   return `<header class="site-header">
   <nav>
-    <a class="wordmark" href="/">DEVREL.md</a>
+    <a class="wordmark" href="/">${MARK_SVG}DEVREL.md</a>
     ${navLinks}
     <span class="spacer"></span>
     <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">Theme</button>

@@ -34,7 +34,7 @@ const browser = { "user-agent": "Mozilla/5.0", accept: "text/html" };
 const get = (url: string) => new Request(url, { headers: browser });
 
 function expectSharedChrome(html: string, current?: string) {
-  expect(html).toContain('<a class="wordmark" href="/">DEVREL.md</a>');
+  expect(html).toMatch(/<a class="wordmark" href="\/"><svg class="mark"[^>]*aria-hidden="true"[\s\S]*<\/svg>DEVREL\.md<\/a>/);
   for (const label of ["Quickstart", "Spec", "Skills", "Generate", "Validate"]) {
     expect(html).toMatch(new RegExp(`class="nav-link"[^>]*>${label}</a>`));
   }
@@ -113,5 +113,44 @@ describe("every route renders the shared header and footer", () => {
     expectSharedChrome(
       renderToStaticMarkup(createElement(ErrorPage, { error: new Error("x"), reset: () => {} }))
     );
+  });
+});
+
+describe("icons and social tags", () => {
+  const ICONS = [
+    '<link rel="icon" href="/favicon.svg" type="image/svg+xml">',
+    '<link rel="icon" href="/favicon.ico" sizes="any">',
+    '<link rel="apple-touch-icon" href="/apple-icon.png">',
+  ];
+
+  it("/ has icons, og and twitter tags with an absolute image URL", async () => {
+    const { GET } = await import("@/app/route");
+    const html = await (await GET(get("https://devrel.md/"))).text();
+    for (const icon of ICONS) expect(html).toContain(icon);
+    expect(html).toMatch(/<meta property="og:image" content="https?:\/\/[^"]+\/opengraph-image\.png">/);
+    expect(html).toMatch(/<meta name="twitter:image" content="https?:\/\/[^"]+\/opengraph-image\.png">/);
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
+    expect(html).toContain('<meta property="og:title" content="DEVREL.md">');
+    expect(html).toContain('<meta property="og:description"');
+    expect(html).toMatch(/<svg class="mark"[^>]*aria-hidden="true"/);
+  });
+
+  it("/generate (React path) has icons and og:image too", async () => {
+    const { metadata } = await import("@/app/layout");
+    expect(metadata.icons).toMatchObject({ apple: "/apple-icon.png" });
+    expect(JSON.stringify(metadata.icons)).toContain("/favicon.svg");
+    expect(JSON.stringify(metadata.icons)).toContain("/favicon.ico");
+    expect(JSON.stringify(metadata.openGraph)).toContain("/opengraph-image.png");
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+  });
+
+  it("Markdown responses carry no HTML head", async () => {
+    const { GET } = await import("@/app/route");
+    const res = await GET(new Request("https://devrel.md/", { headers: { "user-agent": "curl/8.4.0", accept: "text/markdown" } }));
+    const body = await res.text();
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+    expect(body).not.toContain("<head");
+    expect(body).not.toContain("og:image");
+    expect(body).not.toContain("<svg");
   });
 });

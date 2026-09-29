@@ -92,6 +92,9 @@ a {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
   font-weight: 700;
   color: var(--fg);
   text-decoration: none;
@@ -582,4 +585,10 @@ body.home main pre {
   body.home main .hero h1 + h2 { font-size: 1.25rem; }
   body.home main .hero .lede { font-size: 1.15rem; }
   body.home main .hero pre { font-size: 0.95rem; }
+}
+
+.wordmark .mark {
+  height: 1.25em;
+  width: 1.25em;
+  flex: none;
 }
