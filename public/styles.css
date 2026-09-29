@@ -396,17 +396,58 @@ body.home main {
   padding-top: 3rem;
 }
 
-body.home main h1 {
-  font-size: 2.1rem;
+/* The hero (H1, headline, lede, agent prompt) is an entrance: a wider measure
+   than the reading column, centred on it. Below the hero the page returns to
+   the narrow column. Same palette and type as everywhere else. */
+
+.hero {
+  margin-bottom: 1rem;
 }
 
-body.home main h1 + h2 {
+body.home main .hero h1 {
+  font-size: 2.4rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+body.home main .hero h1 + h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--fg);
+  line-height: 1.3;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+body.home main .hero .lede {
   font-size: 1.3rem;
-  font-weight: 500;
+  line-height: 1.5;
   color: var(--muted);
-  line-height: 1.4;
-  margin-top: 0.5rem;
-  margin-bottom: 1.75rem;
+  margin: 0 0 1.75rem;
+  max-width: 38rem;
+}
+
+body.home main .hero blockquote {
+  font-size: 0.92rem;
+}
+
+body.home main .hero pre {
+  padding-block: 1.25rem;
+  padding-inline-start: 1.5rem;
+  font-size: 1.05rem;
+  border-color: var(--accent);
+}
+
+@media (min-width: 56rem) {
+  .hero {
+    margin-inline: -5rem;
+  }
+  body.home main .hero h1 {
+    font-size: 3rem;
+  }
+  body.home main .hero h1 + h2 {
+    font-size: 1.85rem;
+  }
 }
 
 body.home main h2 {
@@ -416,15 +457,45 @@ body.home main h2 {
   font-size: 1.5rem;
 }
 
-body.home main h1 + h2 + p {
-  font-size: 1.1rem;
+body.home main pre {
+  padding-block: 1.25rem;
+  padding-inline-start: 1.5rem;
+  font-size: 0.92rem;
 }
 
-body.home main pre {
-  padding: 1.25rem 1.5rem;
-  font-size: 0.92rem;
-  border-color: var(--accent);
-  border-width: 1px;
+.code-link {
+  margin: -0.25rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+/* Copy buttons are added by a small script; without JS none of this applies. */
+
+.code-block {
+  position: relative;
+}
+
+.code-block pre {
+  padding-right: 5.5rem;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  padding: 0.25rem 0.6rem;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  color: var(--fg);
+  border-color: var(--muted);
 }
 
 .compare-grid {
@@ -507,6 +578,8 @@ body.home main pre {
 }
 
 @media (max-width: 480px) {
-  body.home main h1 { font-size: 1.75rem; }
-  body.home main h1 + h2 { font-size: 1.1rem; }
+  body.home main .hero h1 { font-size: 1.9rem; }
+  body.home main .hero h1 + h2 { font-size: 1.25rem; }
+  body.home main .hero .lede { font-size: 1.15rem; }
+  body.home main .hero pre { font-size: 0.95rem; }
 }

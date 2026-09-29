@@ -139,10 +139,49 @@ function transformComparison(tree: Root): void {
   tree.children = [...section.before, section.heading, ...before, grid, ...after, ...section.after];
 }
 
+/** Wraps everything before the second h2 (H1, headline, lede, agent note and
+ * prompt block) in <div class="hero"> so CSS can give the entrance a wider
+ * measure than the reading column, and marks the paragraph straight after the
+ * headline as the lede. No-ops if the document doesn't open h1, h2. */
+function transformHero(tree: Root): void {
+  const elementIndexes = tree.children
+    .map((n, i) => (isElement(n) ? i : -1))
+    .filter((i) => i !== -1);
+  const [h1, headline, lede] = elementIndexes.map((i) => tree.children[i] as Element);
+  if (!h1 || h1.tagName !== "h1" || !headline || headline.tagName !== "h2") return;
+
+  const nextH2 = tree.children.findIndex(
+    (n, i) => i > (elementIndexes[1] as number) && isElement(n, "h2")
+  );
+  if (nextH2 === -1) return;
+
+  if (lede && lede.tagName === "p") lede.properties = { ...lede.properties, className: ["lede"] };
+
+  const heroChildren = tree.children.slice(0, nextH2) as ElementContent[];
+  tree.children = [el("div", { className: ["hero"] }, heroChildren), ...tree.children.slice(nextH2)];
+}
+
+/** A small "View the full example" link directly under the example code
+ * block in "## What it looks like". */
+function addExampleLink(tree: Root): void {
+  const section = extractSection(tree.children, "h2", (t) => t.toLowerCase() === "what it looks like");
+  if (!section) return;
+  const preIndex = section.body.findIndex((n) => isElement(n, "pre"));
+  if (preIndex === -1) return;
+
+  const link = el("p", { className: ["code-link"] }, [
+    el("a", { href: "/example" }, [{ type: "text", value: "View the full example" }]),
+  ]);
+  const body = [...section.body.slice(0, preIndex + 1), link, ...section.body.slice(preIndex + 1)];
+  tree.children = [...section.before, section.heading, ...body, ...section.after];
+}
+
 function homeLayout() {
   return (tree: Root) => {
+    addExampleLink(tree);
     transformFaq(tree);
     transformComparison(tree);
+    transformHero(tree);
   };
 }
 

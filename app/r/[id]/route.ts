@@ -70,6 +70,7 @@ export async function GET(request: Request, { params }: Params): Promise<Respons
     bodyHtml,
     preContent,
     postContent,
+    copyButtons: false,
   });
 
   return htmlResponse(page, mdPath);

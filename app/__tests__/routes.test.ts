@@ -26,6 +26,8 @@ describe("/ (home)", () => {
     expect(body).toContain('class="home"');
     expect(body).toContain('<div class="faq-list">');
     expect(body).toContain('<div class="compare-grid">');
+    expect(body).toContain('<div class="hero">');
+    expect(body).toContain("copy-btn");
     // Nav points Spec at /spec now that home owns "/".
     expect(body).toMatch(/href="\/spec"[^>]*>Spec<\/a>/);
     expect(body).toMatch(/href="\/validate"[^>]*>Validate<\/a>/);

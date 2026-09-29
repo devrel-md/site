@@ -12,6 +12,8 @@ export interface PageOptions {
   postContent?: string;
   /** Added to <body>, for page-specific CSS scoping (e.g. the home page's layout). */
   bodyClassName?: string;
+  /** Add "Copy" buttons to code blocks (default true). Off on result pages, where copying is gated behind the email form. */
+  copyButtons?: boolean;
 }
 
 const NAV = [
@@ -44,8 +46,58 @@ function toggleScript(): string {
   })();`;
 }
 
+// Progressive enhancement: code blocks are fully readable and selectable
+// without this. It wraps each <pre> and adds a Copy button that uses the
+// async clipboard API, falling back to selecting the text (and the legacy
+// copy command) if the browser refuses.
+function copyScript(): string {
+  return `(function(){
+    var blocks = document.querySelectorAll('main pre');
+    Array.prototype.forEach.call(blocks, function (pre) {
+      if (pre.closest('.raw-toggle')) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'code-block';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy this code block');
+      btn.setAttribute('aria-live', 'polite');
+      wrap.appendChild(btn);
+      var timer;
+      function flash(label) {
+        btn.textContent = label;
+        clearTimeout(timer);
+        timer = setTimeout(function () { btn.textContent = 'Copy'; }, 1800);
+      }
+      function fallback() {
+        var ok = false;
+        try {
+          var range = document.createRange();
+          range.selectNodeContents(pre);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          ok = document.execCommand('copy');
+        } catch (e) {}
+        flash(ok ? 'Copied' : 'Press Ctrl+C');
+      }
+      btn.addEventListener('click', function () {
+        var text = pre.textContent || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { flash('Copied'); }, fallback);
+        } else {
+          fallback();
+        }
+      });
+    });
+  })();`;
+}
+
 export function renderPage(options: PageOptions): string {
-  const { title, description, path, bodyHtml, preContent = "", postContent = "", bodyClassName } = options;
+  const { title, description, path, bodyHtml, preContent = "", postContent = "", bodyClassName, copyButtons = true } = options;
   const canonical = `${env.siteUrl}${path}`;
   const bodyAttr = bodyClassName ? ` class="${escapeHtml(bodyClassName)}"` : "";
 
@@ -89,7 +141,7 @@ ${postContent}
     <a class="nav-link" href="/privacy">Privacy</a>
   </div>
 </footer>
-<script>${toggleScript()}</script>
+<script>${toggleScript()}</script>${copyButtons ? `\n<script>${copyScript()}</script>` : ""}
 </body>
 </html>
 `;

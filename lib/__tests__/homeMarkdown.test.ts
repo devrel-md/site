@@ -26,6 +26,22 @@ describe("renderHomeHtml", () => {
     expect(html).toMatch(/<code class="language-markdown"/);
   });
 
+  it("wraps the entrance in a hero, marks the lede, and links the full example under the example block", async () => {
+    const raw = await readFile(path.join(process.cwd(), "content", "home.md"), "utf8");
+    const { html } = await renderHomeHtml(raw);
+
+    const hero = html.slice(html.indexOf('<div class="hero">'), html.indexOf('<h2 id="why-devrelmd"'));
+    expect(hero).toContain("<h1");
+    expect(hero).toContain('<p class="lede">Think of DEVREL.md as a README for your developer funnel');
+    expect(hero).toContain("<pre>");
+    // The hero closes before the reading column starts.
+    expect(hero.trim().endsWith("</div>")).toBe(true);
+    expect(html.match(/<div class="hero">/g)).toHaveLength(1);
+
+    const afterExample = html.slice(html.indexOf('<h2 id="what-it-looks-like"'));
+    expect(afterExample).toMatch(/<\/pre>\s*<p class="code-link"><a href="\/example">View the full example<\/a><\/p>/);
+  });
+
   it("does not throw and skips the transform when a section is missing", async () => {
     const { html } = await renderHomeHtml("# Title\n\nJust a normal paragraph.\n");
     expect(html).toContain("<p>Just a normal paragraph.</p>");
