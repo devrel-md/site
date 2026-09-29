@@ -40,7 +40,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "That verification check did not pass. Try again." }, { status: 400 });
   }
 
-  const { allowed } = await checkAndIncrementRateLimit(ipHash);
+  const { allowed } = await checkAndIncrementRateLimit(ipHash, "generate");
   if (!allowed) {
     return Response.json(
       { error: "You have hit today's generation limit. Try again tomorrow." },

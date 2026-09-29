@@ -25,3 +25,7 @@ export const GENERATION_TEMPERATURE = 0.2;
 // the brief's .env.example list, and belongs next to the other generator
 // tuning here rather than as an extra undocumented variable.
 export const RATE_LIMIT_PER_IP_PER_DAY = 5;
+
+// The validator calls no paid model, just the local quality gate, so it gets
+// a much more generous budget than the generator.
+export const RATE_LIMIT_VALIDATE_PER_IP_PER_DAY = 30;
