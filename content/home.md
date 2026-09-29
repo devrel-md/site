@@ -53,7 +53,7 @@ Time to Hello World: 22 min today, 5 min target
 | Onboarding | First call in under 5 min, over 80% success | 22 min, 64% | no |
 ```
 
-A fictional product. See the [full example](/example) or start from the [blank template](/template).
+A fictional product. Prefer a blank page? Start from the [template](/template).
 
 ## Same agent, different answer
 
