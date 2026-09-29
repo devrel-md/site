@@ -1,0 +1,6 @@
+[submodule "content/spec"]
+	path = content/spec
+	url = ../spec
+[submodule "content/skills"]
+	path = content/skills
+	url = ../skills

@@ -1,0 +1,158 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { MODEL_CHAIN } from "@/lib/generatorConfig";
+
+const streamCompletionMock = vi.fn();
+const isFreeModelCircuitOpenMock = vi.fn();
+const isOverDailySpendCapMock = vi.fn();
+const logAttemptMock = vi.fn();
+
+vi.mock("@/lib/openrouter", () => ({ streamCompletion: (...args: unknown[]) => streamCompletionMock(...args) }));
+vi.mock("@/lib/circuitBreaker", () => ({
+  isFreeModelCircuitOpen: () => isFreeModelCircuitOpenMock(),
+}));
+vi.mock("@/lib/spendCap", () => ({
+  isOverDailySpendCap: () => isOverDailySpendCapMock(),
+}));
+vi.mock("@/lib/attempts", () => ({ logAttempt: (...args: unknown[]) => logAttemptMock(...args) }));
+vi.mock("@/lib/generatorPrompt", () => ({
+  buildSystemPrompt: async () => "system prompt",
+  buildUserPrompt: () => "user prompt",
+}));
+vi.mock("@/lib/discoverPages", () => ({ discoverPages: async () => [] }));
+
+const VALID_MARKDOWN = [
+  "---",
+  "spec: devrel.md/0.1",
+  "product: Acme",
+  "stage: unknown",
+  "updated: 2026-09-28",
+  "---",
+  "",
+  "## Product",
+  "text",
+  "## Value proposition",
+  "text",
+  "## ICPs",
+  "text",
+  "## Anti-personas",
+  "text",
+  "## North Star",
+  "text",
+  "## Activation",
+  "text",
+  "## Funnel health",
+  "",
+  "| Stage | Gate | Now | Pass |",
+  "| --- | --- | --- | --- |",
+  "| Awareness | g | n | yes |",
+  "| Onboarding | g | n | yes |",
+  "| Activation | g | n | yes |",
+  "| Engagement | g | n | yes |",
+  "| Monetization | g | n | n/a |",
+  ...Array(15).fill("filler line"),
+].join("\n");
+
+function success(model: string, text: string) {
+  return {
+    kind: "success" as const,
+    result: {
+      text,
+      servedModel: model,
+      finishReason: "stop",
+      tokensIn: 100,
+      tokensOut: 100,
+      costUsd: model === MODEL_CHAIN.free ? 0 : 0.01,
+      firstTokenMs: 500,
+      totalMs: 2000,
+    },
+  };
+}
+
+describe("generateDevrelMd (fallback order and circuit breaker)", () => {
+  beforeEach(() => {
+    streamCompletionMock.mockReset();
+    isFreeModelCircuitOpenMock.mockReset().mockResolvedValue(false);
+    isOverDailySpendCapMock.mockReset().mockResolvedValue(false);
+    logAttemptMock.mockReset();
+  });
+
+  it("succeeds on the free model when it produces a valid file", async () => {
+    streamCompletionMock.mockResolvedValueOnce(success(MODEL_CHAIN.free, VALID_MARKDOWN));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("success");
+    if (outcome.status === "success") expect(outcome.model).toBe(MODEL_CHAIN.free);
+    expect(streamCompletionMock).toHaveBeenCalledTimes(1);
+    expect(logAttemptMock).toHaveBeenCalledTimes(1);
+    expect(logAttemptMock.mock.calls[0]![0]).toMatchObject({ outcome: "success" });
+  });
+
+  it("falls through free -> paid primary on a free timeout", async () => {
+    streamCompletionMock
+      .mockResolvedValueOnce({ kind: "timeout", firstTokenMs: null, elapsedMs: 15000 })
+      .mockResolvedValueOnce(success(MODEL_CHAIN.paidPrimary, VALID_MARKDOWN));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("success");
+    if (outcome.status === "success") expect(outcome.model).toBe(MODEL_CHAIN.paidPrimary);
+    expect(streamCompletionMock).toHaveBeenCalledTimes(2);
+    expect(logAttemptMock.mock.calls[0]![0]).toMatchObject({ outcome: "timeout", model: MODEL_CHAIN.free });
+  });
+
+  it("regenerates once on the next paid model after a quality-gate failure", async () => {
+    streamCompletionMock
+      .mockResolvedValueOnce(success(MODEL_CHAIN.free, "not a valid file"))
+      .mockResolvedValueOnce(success(MODEL_CHAIN.paidPrimary, "still not valid"))
+      .mockResolvedValueOnce(success(MODEL_CHAIN.paidBackup, VALID_MARKDOWN));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("success");
+    if (outcome.status === "success") expect(outcome.model).toBe(MODEL_CHAIN.paidBackup);
+    expect(streamCompletionMock).toHaveBeenCalledTimes(3);
+    expect(logAttemptMock.mock.calls[0]![0]).toMatchObject({ outcome: "quality_fail" });
+    expect(logAttemptMock.mock.calls[1]![0]).toMatchObject({ outcome: "quality_fail" });
+  });
+
+  it("skips the free model entirely when the circuit breaker is open", async () => {
+    isFreeModelCircuitOpenMock.mockResolvedValue(true);
+    streamCompletionMock.mockResolvedValueOnce(success(MODEL_CHAIN.paidPrimary, VALID_MARKDOWN));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("success");
+    expect(streamCompletionMock).toHaveBeenCalledTimes(1);
+    const [{ models }] = streamCompletionMock.mock.calls[0]!;
+    expect(models).not.toContain(MODEL_CHAIN.free);
+  });
+
+  it("reports capped, without calling OpenRouter, when both the circuit is open and the spend cap is hit", async () => {
+    isFreeModelCircuitOpenMock.mockResolvedValue(true);
+    isOverDailySpendCapMock.mockResolvedValue(true);
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("capped");
+    expect(streamCompletionMock).not.toHaveBeenCalled();
+  });
+
+  it("reports exhausted when every model in the chain fails", async () => {
+    streamCompletionMock
+      .mockResolvedValueOnce({ kind: "error", message: "boom", elapsedMs: 100 })
+      .mockResolvedValueOnce({ kind: "error", message: "boom", elapsedMs: 100 })
+      .mockResolvedValueOnce({ kind: "timeout", firstTokenMs: null, elapsedMs: 30000 });
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("exhausted");
+    expect(streamCompletionMock).toHaveBeenCalledTimes(3);
+  });
+});
