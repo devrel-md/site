@@ -9,12 +9,17 @@ import { scheduleSeries } from "@/lib/series";
 import { env } from "@/lib/env";
 import { unlockCookieName } from "@/lib/unlock";
 import { escapeHtml } from "@/lib/html";
+import { renderPage } from "@/lib/page";
 
 function errorPage(message: string, status: number, backHref: string): Response {
-  return new Response(
-    `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Could not unlock</title><link rel="stylesheet" href="/styles.css"></head><body><main><h1>${escapeHtml(message)}</h1><p><a href="${escapeHtml(backHref)}">Back</a></p></main></body></html>`,
-    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  const html = renderPage({
+    title: "Could not unlock: DEVREL.md",
+    description: "Something went wrong unlocking this result.",
+    path: "/api/lead",
+    bodyHtml: `<h1>${escapeHtml(message)}</h1><p><a href="${escapeHtml(backHref)}">Back</a></p>`,
+    copyButtons: false,
+  });
+  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 export async function POST(request: Request): Promise<Response> {

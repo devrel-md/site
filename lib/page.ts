@@ -1,5 +1,6 @@
 import { escapeHtml } from "@/lib/html";
 import { env } from "@/lib/env";
+import { siteHeaderHtml, siteFooterHtml, themeScript, toggleScript } from "@/lib/siteLayout";
 
 export interface PageOptions {
   title: string;
@@ -14,36 +15,6 @@ export interface PageOptions {
   bodyClassName?: string;
   /** Add "Copy" buttons to code blocks (default true). Off on result pages, where copying is gated behind the email form. */
   copyButtons?: boolean;
-}
-
-const NAV = [
-  { href: "/quickstart", label: "Quickstart" },
-  { href: "/spec", label: "Spec" },
-  { href: "/skills", label: "Skills" },
-  { href: "/generate", label: "Generate" },
-  { href: "/validate", label: "Validate" },
-];
-
-function themeScript(): string {
-  // Runs before paint to avoid a flash of the wrong theme. Reading is fine
-  // without this ever running: it only affects which colour scheme shows.
-  return `(function(){try{var t=localStorage.getItem('devrelmd-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
-}
-
-function toggleScript(): string {
-  return `(function(){
-    var btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      var root = document.documentElement;
-      var current = root.getAttribute('data-theme');
-      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var effective = current || (prefersDark ? 'dark' : 'light');
-      var next = effective === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem('devrelmd-theme', next); } catch (e) {}
-    });
-  })();`;
 }
 
 // Progressive enhancement: code blocks are fully readable and selectable
@@ -101,11 +72,6 @@ export function renderPage(options: PageOptions): string {
   const canonical = `${env.siteUrl}${path}`;
   const bodyAttr = bodyClassName ? ` class="${escapeHtml(bodyClassName)}"` : "";
 
-  const navLinks = NAV.map(
-    (item) =>
-      `<a class="nav-link" href="${item.href}"${item.href === path ? ' aria-current="page"' : ""}>${item.label}</a>`
-  ).join("\n      ");
-
   return `<!doctype html>
 <html lang="en-GB">
 <head>
@@ -119,28 +85,12 @@ export function renderPage(options: PageOptions): string {
 <meta name="color-scheme" content="light dark">
 </head>
 <body${bodyAttr}>
-<header class="site-header">
-  <nav>
-    <a class="wordmark" href="/">DEVREL.md</a>
-    ${navLinks}
-    <span class="spacer"></span>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">Theme</button>
-  </nav>
-</header>
+${siteHeaderHtml(path)}
 <main>
 ${preContent}${bodyHtml}
 ${postContent}
 </main>
-<footer class="site-footer">
-  <div class="wrap">
-    <span>Created and maintained by Marcos Placona, DevRel Bridge. Framework from <em>How to Build Developer Ecosystems</em> by Amir Shevat and Marcos Placona.</span>
-  </div>
-  <div class="wrap">
-    <a class="nav-link" href="/changelog">Changelog</a>
-    <a class="nav-link" href="/api">API reference</a>
-    <a class="nav-link" href="/privacy">Privacy</a>
-  </div>
-</footer>
+${siteFooterHtml()}
 <script>${toggleScript()}</script>${copyButtons ? `\n<script>${copyScript()}</script>` : ""}
 </body>
 </html>

@@ -1,11 +1,16 @@
 import { unsubscribeByToken } from "@/lib/unsubscribe";
 import { escapeHtml } from "@/lib/html";
+import { renderPage } from "@/lib/page";
 
 function page(message: string): Response {
-  return new Response(
-    `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Unsubscribed</title><link rel="stylesheet" href="/styles.css"></head><body><main><h1>${escapeHtml(message)}</h1><p><a href="/">Back to devrel.md</a></p></main></body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  const html = renderPage({
+    title: "Unsubscribed: DEVREL.md",
+    description: "Email preferences for DEVREL.md.",
+    path: "/api/unsubscribe",
+    bodyHtml: `<h1>${escapeHtml(message)}</h1><p><a href="/">Back to devrel.md</a></p>`,
+    copyButtons: false,
+  });
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 async function handle(request: Request): Promise<Response> {
