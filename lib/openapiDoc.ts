@@ -7,10 +7,10 @@ export function buildOpenApiDoc(): object {
   return {
     openapi: "3.0.3",
     info: {
-      title: "devrel.md generator API",
+      title: "devrel.md API",
       version: "0.1.0",
       description:
-        "Generates a draft DEVREL.md from a product's public docs or home page. No authentication beyond a Cloudflare Turnstile token.",
+        "The generator drafts a DEVREL.md from a product's public docs or home page, gated by a Cloudflare Turnstile token. The validator checks any DEVREL.md against the spec's quality gate; it needs no token.",
       contact: { url: `${env.siteUrl}/api` },
     },
     servers: [{ url: env.siteUrl }],
@@ -41,6 +41,51 @@ export function buildOpenApiDoc(): object {
               content: { "text/event-stream": { schema: { type: "string" } } },
             },
             "400": { description: "Invalid URL or failed Turnstile check." },
+            "429": { description: "Daily rate limit reached for this IP." },
+          },
+        },
+      },
+      "/api/validate": {
+        post: {
+          summary: "Validate a DEVREL.md",
+          description: "The same quality gate the generator uses. No authentication, rate limited by IP.",
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              "text/markdown": { schema: { type: "string" } },
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["markdown"],
+                  properties: { markdown: { type: "string" } },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Validation result.",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      valid: { type: "boolean" },
+                      problems: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: { problem: { type: "string" }, fix: { type: "string" } },
+                        },
+                      },
+                      gates: { type: "array", items: { type: "object" } },
+                    },
+                  },
+                },
+              },
+            },
+            "400": { description: "Missing or oversized body." },
             "429": { description: "Daily rate limit reached for this IP." },
           },
         },
