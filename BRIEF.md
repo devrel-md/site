@@ -13,7 +13,7 @@ Audience: developer-facing B2B companies (APIs, SDKs, AI tools, infrastructure).
 - Next.js 16 (App Router), TypeScript, React 19. Read `node_modules/next/dist/docs/` before writing code: this version has breaking changes.
 - Postgres via `pg` with plain SQL migrations in `db/migrations/NNN_name.sql` and a tiny migration runner. No ORM.
 - Local dev: `docker compose` with `postgres:16-alpine`.
-- The spec and skills come from the private repos `devrel-md/spec` and `mplacona/devrel-skills`, added as git submodules at `content/spec` and `content/skills`. The site reads them at build time. Never copy their content by hand.
+- The spec and skills come from the private repos `devrel-md/spec` and `devrel-md/skills`, added as git submodules at `content/spec` and `content/skills`. The site reads them at build time. Never copy their content by hand.
 - Deployment target: OpenShip on the Hetzner box, behind Cloudflare. Build a production `Dockerfile` (Next.js standalone output). Don't write deploy workflows or touch the server; that's a later, approved step.
 - UK English in all copy. No em dashes, en dashes or double hyphens anywhere: copy, code comments, commit messages. Commit messages and PRs carry no AI attribution lines.
 

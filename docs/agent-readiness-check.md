@@ -39,8 +39,8 @@ Applicable points: 97/100 (not applicable: check 5, docs home linked from produc
 | 15 | A sandbox or test mode is documented | pass | 6/6 | `/api#testing-safely` documents 24h response caching (safe to retry while testing) and Cloudflare's documented always-pass Turnstile test keys for local integration testing | |
 | 16 | The quickstart is copy-paste with expected output shown | pass | 6/6 | `/api` (discovered as the quickstart via the "API quickstart" link on `/`) has a complete `curl` request and the exact `text/event-stream` response shape, including the final `done` event | |
 | 17 | Prerequisites are listed upfront | pass | 5/5 | `/api`'s Quickstart section lists prerequisites (an HTTP client, a public HTTPS URL, a Turnstile token) before the first code block | |
-| 18 | An MCP server or official agent tooling is documented | pass | 8/8 | `/skills` documents the Claude Code plugin install (`/plugin marketplace add mplacona/devrel-skills`) with full setup instructions | |
-| 19 | An SDK installs via a standard package manager | pass | 7/7 | `/skills` shows `npx skills add mplacona/devrel-skills`; `/api` shows a working `curl` example against the documented `POST /api/generate` endpoint | |
+| 18 | An MCP server or official agent tooling is documented | pass | 8/8 | `/skills` documents the Claude Code plugin install (`/plugin marketplace add devrel-md/skills`) with full setup instructions | |
+| 19 | An SDK installs via a standard package manager | pass | 7/7 | `/skills` shows `npx skills add devrel-md/skills`; `/api` shows a working `curl` example against the documented `POST /api/generate` endpoint | |
 
 ### Top 3 fixes
 

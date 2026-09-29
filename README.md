@@ -32,7 +32,7 @@ Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log inste
 
 ### Content submodules
 
-`content/spec` (`devrel-md/spec`) and `content/skills` (`mplacona/devrel-skills`) are git submodules, both private. The site reads them at request time; it never copies their content by hand. If they are empty after cloning:
+`content/spec` (`devrel-md/spec`) and `content/skills` (`devrel-md/skills`) are git submodules, both private. The site reads them at request time; it never copies their content by hand. If they are empty after cloning:
 
 ```bash
 git submodule update --init --recursive

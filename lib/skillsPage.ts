@@ -2,8 +2,8 @@ import { escapeHtml } from "@/lib/html";
 import { listSkills, type SkillSummary } from "@/lib/content";
 
 export const SKILLS_INSTALL_NOTE = `Read https://devrel.md and create a DEVREL.md for this repo.`;
-export const SKILLS_SH_COMMAND = `npx skills add mplacona/devrel-skills`;
-export const SKILLS_PLUGIN_COMMANDS = `/plugin marketplace add mplacona/devrel-skills\n/plugin install devrel-skills@devrel-skills`;
+export const SKILLS_SH_COMMAND = `npx skills add devrel-md/skills`;
+export const SKILLS_PLUGIN_COMMANDS = `/plugin marketplace add devrel-md/skills\n/plugin install devrel-skills@devrel-skills`;
 
 export function installBlockHtml(): string {
   return `<h2 id="install">Install</h2>
