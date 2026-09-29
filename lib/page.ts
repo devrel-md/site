@@ -15,6 +15,7 @@ export interface PageOptions {
 }
 
 const NAV = [
+  { href: "/quickstart", label: "Quickstart" },
   { href: "/spec", label: "Spec" },
   { href: "/skills", label: "Skills" },
   { href: "/generate", label: "Generate" },

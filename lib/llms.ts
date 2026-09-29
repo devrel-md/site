@@ -1,5 +1,13 @@
 import { env } from "@/lib/env";
-import { readHome, readSpec, readTemplate, readExample, listSkills, readSkillMarkdown } from "@/lib/content";
+import {
+  readHome,
+  readQuickstart,
+  readSpec,
+  readTemplate,
+  readExample,
+  listSkills,
+  readSkillMarkdown,
+} from "@/lib/content";
 
 export async function buildLlmsTxt(): Promise<string> {
   const skills = await listSkills();
@@ -14,6 +22,7 @@ export async function buildLlmsTxt(): Promise<string> {
 ## Spec
 
 - [Home](${env.siteUrl}/): what DEVREL.md is and how to use it
+- [Quickstart](${env.siteUrl}/quickstart): create a DEVREL.md in about five minutes, then check it
 - [The spec](${env.siteUrl}/spec): the full DEVREL.md specification, required sections, frontmatter and default stage gates
 - [Template](${env.siteUrl}/template): a blank DEVREL.md ready to fill in
 - [Example](${env.siteUrl}/example): a filled-in DEVREL.md for a fictional product
@@ -39,8 +48,9 @@ ${skillLinks}
 }
 
 export async function buildLlmsFullTxt(): Promise<string> {
-  const [home, spec, template, example, skills] = await Promise.all([
+  const [home, quickstart, spec, template, example, skills] = await Promise.all([
     readHome(),
+    readQuickstart(),
     readSpec(),
     readTemplate(),
     readExample(),
@@ -57,6 +67,7 @@ export async function buildLlmsFullTxt(): Promise<string> {
   return [
     `<!-- ${env.siteUrl}/ -->`,
     home,
+    `\n\n---\n\n<!-- ${env.siteUrl}/quickstart -->\n\n${quickstart}`,
     `\n\n---\n\n<!-- ${env.siteUrl}/spec -->\n\n${spec}`,
     `\n\n---\n\n<!-- ${env.siteUrl}/template -->\n\n${template}`,
     `\n\n---\n\n<!-- ${env.siteUrl}/example -->\n\n${example}`,

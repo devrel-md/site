@@ -19,6 +19,10 @@ export async function readHome(): Promise<string> {
   return read(path.join(CONTENT_DIR, "home.md"));
 }
 
+export async function readQuickstart(): Promise<string> {
+  return read(path.join(CONTENT_DIR, "quickstart.md"));
+}
+
 export async function readSpec(): Promise<string> {
   return read(path.join(SPEC_DIR, "SPEC.md"));
 }

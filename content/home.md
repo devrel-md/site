@@ -10,7 +10,7 @@ A README for your developer funnel. DEVREL.md is a simple, open format that tell
 Read https://devrel.md and create a DEVREL.md for this repo.
 ```
 
-Paste that into Claude Code, Cursor, Codex or any agent that can fetch a URL. That's the whole install. Or [generate one from your docs](/generate) in about a minute.
+Paste that into Claude Code, Cursor, Codex or any agent that can fetch a URL. That's the whole install. Or [generate one from your docs](/generate) in about a minute. New here? Follow the [quickstart](/quickstart).
 
 ## Why DEVREL.md?
 

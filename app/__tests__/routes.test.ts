@@ -29,11 +29,48 @@ describe("/ (home)", () => {
     // Nav points Spec at /spec now that home owns "/".
     expect(body).toMatch(/href="\/spec"[^>]*>Spec<\/a>/);
     expect(body).toMatch(/href="\/validate"[^>]*>Validate<\/a>/);
+    expect(body).toMatch(/href="\/quickstart"[^>]*>Quickstart<\/a>/);
+    // The intro paragraph points new readers at the quickstart.
+    expect(body).toMatch(/New here\? Follow the <a href="\/quickstart">quickstart<\/a>/);
   });
 
   it("serves the same Markdown at /index.md", async () => {
     const { GET } = await import("@/app/index.md/route");
     const res = await GET();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+  });
+});
+
+describe("/quickstart", () => {
+  it("serves raw Markdown to curl, with a stable heading and the real /api/validate shape", async () => {
+    const { GET } = await import("@/app/quickstart/route");
+    const res = await GET(req("https://devrel.md/quickstart", { "user-agent": "curl/8.4.0", accept: "*/*" }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+    const body = await res.text();
+    expect(body).toContain("# Quickstart");
+    expect(body).toContain('"gates": [');
+    expect(body).toContain('"stage": "Awareness"');
+  });
+
+  it("serves rendered HTML with stable heading ids and language-tagged code blocks", async () => {
+    const { GET } = await import("@/app/quickstart/route");
+    const res = await GET(
+      req("https://devrel.md/quickstart", { "user-agent": "Mozilla/5.0", accept: "text/html" })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toMatch(/<h2 id="[a-z0-9-]+">Before you start<\/h2>/);
+    expect(body).toMatch(/<h2 id="[a-z0-9-]+">1\. Create the file<\/h2>/);
+    expect(body).toMatch(/<code class="language-text">/);
+    expect(body).toMatch(/<code class="language-bash">/);
+    expect(body).toMatch(/<code class="language-json">/);
+  });
+
+  it("serves the same content at /quickstart.md", async () => {
+    const { GET } = await import("@/app/quickstart.md/route");
+    const res = await GET(req("https://devrel.md/quickstart.md", { "user-agent": "Mozilla/5.0", accept: "text/html" }));
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/markdown");
   });
