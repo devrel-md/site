@@ -18,7 +18,9 @@ vi.mock("@/lib/generatorPrompt", () => ({
   buildSystemPrompt: async () => "system prompt",
   buildUserPrompt: () => "user prompt",
 }));
-vi.mock("@/lib/discoverPages", () => ({ discoverPages: async () => [] }));
+const discoverPagesMock = vi.fn();
+vi.mock("@/lib/discoverPages", () => ({ discoverPages: (...args: unknown[]) => discoverPagesMock(...args) }));
+const ENOUGH_SOURCE = [{ url: "https://acme.dev/docs", label: "input page", content: "Acme docs. ".repeat(80) }];
 
 const VALID_MARKDOWN = [
   "---",
@@ -74,6 +76,7 @@ describe("generateDevrelMd (fallback order and circuit breaker)", () => {
     isFreeModelCircuitOpenMock.mockReset().mockResolvedValue(false);
     isOverDailySpendCapMock.mockReset().mockResolvedValue(false);
     logAttemptMock.mockReset();
+    discoverPagesMock.mockReset().mockResolvedValue(ENOUGH_SOURCE);
   });
 
   it("succeeds on the free model when it produces a valid file", async () => {
@@ -154,5 +157,29 @@ describe("generateDevrelMd (fallback order and circuit breaker)", () => {
 
     expect(outcome.status).toBe("exhausted");
     expect(streamCompletionMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("refuses to generate, without calling OpenRouter, when no pages could be read", async () => {
+    discoverPagesMock.mockResolvedValue([]);
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("no_sources");
+    expect(streamCompletionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a draft with an invented figure and falls back to the next model", async () => {
+    const invented = VALID_MARKDOWN.replace("| Awareness | g | n | yes |", "| Awareness | g | 8.5k GitHub stars | yes |");
+    streamCompletionMock
+      .mockResolvedValueOnce(success(MODEL_CHAIN.free, invented))
+      .mockResolvedValueOnce(success(MODEL_CHAIN.paidPrimary, VALID_MARKDOWN));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com" });
+
+    expect(outcome.status).toBe("success");
+    if (outcome.status === "success") expect(outcome.model).toBe(MODEL_CHAIN.paidPrimary);
+    expect(logAttemptMock.mock.calls[0]?.[0]).toMatchObject({ outcome: "quality_fail" });
   });
 });
