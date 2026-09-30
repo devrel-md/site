@@ -196,4 +196,22 @@ describe("generateDevrelMd (fallback order and circuit breaker)", () => {
     await generateDevrelMd({ inputUrl: "https://example.com", beforeFirstModelCall: counted });
     expect(counted).toHaveBeenCalledTimes(1);
   });
+
+  it("says the page doesn't exist when the input URL returns 404", async () => {
+    discoverPagesMock.mockResolvedValue(Object.assign([], { input: { httpStatus: 404, blockedByRobots: false } }));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com/missing" });
+
+    expect(outcome).toMatchObject({ status: "no_sources", reason: "not_found", httpStatus: 404 });
+  });
+
+  it("says robots.txt blocked it when that's why nothing was read", async () => {
+    discoverPagesMock.mockResolvedValue(Object.assign([], { input: { httpStatus: null, blockedByRobots: true } }));
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    const outcome = await generateDevrelMd({ inputUrl: "https://example.com/private" });
+
+    expect(outcome).toMatchObject({ status: "no_sources", reason: "blocked_by_robots" });
+  });
 });
