@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const queryMock = vi.fn();
 vi.mock("@/lib/db", () => ({ query: (...args: unknown[]) => queryMock(...args) }));
 
-import { checkAndIncrementRateLimit } from "@/lib/rateLimit";
+import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
 import { RATE_LIMIT_PER_IP_PER_DAY, RATE_LIMIT_VALIDATE_PER_IP_PER_DAY } from "@/lib/generatorConfig";
 
 describe("checkAndIncrementRateLimit", () => {
@@ -43,5 +43,23 @@ describe("checkAndIncrementRateLimit", () => {
     await checkAndIncrementRateLimit("hash1");
     const [, params] = queryMock.mock.calls[0]!;
     expect(params).toEqual(["hash1", "generate"]);
+  });
+});
+
+describe("isRateLimited", () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+  });
+
+  it("is not limited before the first run of the day", async () => {
+    queryMock.mockResolvedValue([]);
+    expect(await isRateLimited("hash1", "generate")).toBe(false);
+  });
+
+  it("is limited once today's runs reach the limit, and never writes", async () => {
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_PER_IP_PER_DAY }]);
+    expect(await isRateLimited("hash1", "generate")).toBe(true);
+    const [sql] = queryMock.mock.calls[0]!;
+    expect(String(sql).trim().toLowerCase().startsWith("select")).toBe(true);
   });
 });

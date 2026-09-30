@@ -1,5 +1,5 @@
 import { verifyTurnstile } from "@/lib/turnstile";
-import { checkAndIncrementRateLimit } from "@/lib/rateLimit";
+import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
 import { clientIp, hashIp } from "@/lib/hash";
 import { normaliseUrl, findCachedResult, createResult } from "@/lib/results";
 import { extractFunnelGates } from "@/lib/funnelGates";
@@ -52,8 +52,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "That verification check did not pass. Try again." }, { status: 400 });
   }
 
-  const { allowed } = await checkAndIncrementRateLimit(ipHash, "generate");
-  if (!allowed) {
+  // Check without counting: only runs that reach a model count (below).
+  if (await isRateLimited(ipHash, "generate")) {
     return Response.json(
       { error: "You have hit today's generation limit. Try again tomorrow." },
       { status: 429 }
@@ -103,6 +103,9 @@ export async function POST(request: Request): Promise<Response> {
           inputUrl: rawUrl,
           onDelta: (chunk) => send(sseEvent("delta", chunk)),
           onStatus: (status) => send(sseEvent("status", status)),
+          beforeFirstModelCall: async () => {
+            await checkAndIncrementRateLimit(ipHash, "generate");
+          },
           persistResult: async (markdown, model, costUsd) => {
             const result = await createResult({
               url: rawUrl,

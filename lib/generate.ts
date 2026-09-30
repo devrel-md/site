@@ -72,6 +72,9 @@ export async function generateDevrelMd(params: {
   onDelta?: (chunk: string) => void;
   onModelStart?: (model: string) => void;
   onStatus?: (status: GenerateStatus) => void;
+  /** Called once, just before the first model call: the point at which a run
+   * starts costing money, and so counts against the daily limit. */
+  beforeFirstModelCall?: () => Promise<void>;
   /** Called once validation passes, before the attempt is logged, so the
    * logged attempt can carry the resulting row's id. */
   persistResult?: (markdown: string, model: string, costUsd: number) => Promise<string>;
@@ -90,6 +93,7 @@ export async function generateDevrelMd(params: {
   params.onStatus?.({ stage: "read", pages: pages.length });
   // Never let a model write from memory: with nothing to read, it invents.
   if (!hasEnoughSource(pages)) return { status: "no_sources" };
+  await params.beforeFirstModelCall?.();
 
   const today = new Date().toISOString().slice(0, 10);
   const userPrompt = buildUserPrompt(params.inputUrl, pages, today);
