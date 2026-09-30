@@ -26,3 +26,15 @@ export async function checkAndIncrementRateLimit(
   const count = rows[0]?.count ?? 1;
   return { allowed: count <= LIMITS[kind], count };
 }
+
+/** Whether today's limit for this hashed IP and `kind` is already used up,
+ * without counting this request. The generator checks this up front and only
+ * counts a run once it's about to call a model, so cached results and
+ * refusals don't use up anyone's runs. */
+export async function isRateLimited(ipHash: string, kind: RateLimitKind = "generate"): Promise<boolean> {
+  const rows = await query<{ count: number }>(
+    `select count from rate_limits where ip_hash = $1 and day = (now() at time zone 'utc')::date and kind = $2`,
+    [ipHash, kind]
+  );
+  return (rows[0]?.count ?? 0) >= LIMITS[kind];
+}

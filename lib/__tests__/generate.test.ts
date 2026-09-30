@@ -182,4 +182,18 @@ describe("generateDevrelMd (fallback order and circuit breaker)", () => {
     if (outcome.status === "success") expect(outcome.model).toBe(MODEL_CHAIN.paidPrimary);
     expect(logAttemptMock.mock.calls[0]?.[0]).toMatchObject({ outcome: "quality_fail" });
   });
+
+  it("counts a run only when it reaches a model", async () => {
+    const counted = vi.fn(async () => {});
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    discoverPagesMock.mockResolvedValue([]);
+    await generateDevrelMd({ inputUrl: "https://example.com", beforeFirstModelCall: counted });
+    expect(counted).not.toHaveBeenCalled();
+
+    discoverPagesMock.mockResolvedValue(ENOUGH_SOURCE);
+    streamCompletionMock.mockResolvedValueOnce(success(MODEL_CHAIN.free, VALID_MARKDOWN));
+    await generateDevrelMd({ inputUrl: "https://example.com", beforeFirstModelCall: counted });
+    expect(counted).toHaveBeenCalledTimes(1);
+  });
 });
