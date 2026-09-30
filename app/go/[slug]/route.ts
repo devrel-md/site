@@ -12,7 +12,9 @@ export async function GET(request: NextRequest, { params }: Params): Promise<Res
   const { destination, params: goParams } = resolveGo(slug, request.nextUrl.searchParams);
 
   if (!destination) {
-    return NextResponse.redirect(new URL("/", request.url), { status: 302 });
+    // Relative, for the same reason as the lead form: request.url is the
+    // container's address behind the proxy.
+    return new NextResponse(null, { status: 302, headers: { Location: "/" } });
   }
 
   const ipHash = hashIp(clientIp(request.headers));

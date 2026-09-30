@@ -639,3 +639,60 @@ body.home main pre {
 @media (prefers-reduced-motion: reduce) {
   .progress-dot { animation: none; }
 }
+
+/* Result page stage gates: one card per stage, saying what we found and,
+   for gates that need the team's own numbers, what to measure. */
+.gates-headline {
+  margin: 0.5rem 0 1rem;
+}
+
+.gate-cards {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.gate-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+}
+
+.gate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.gate-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.gate-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pass-na {
+  color: var(--muted);
+}
+
+.gate-rule {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.gate-found,
+.gate-measure {
+  font-size: 0.9rem;
+  margin: 0.35rem 0;
+}
+
+.gate-empty {
+  color: var(--muted);
+}
