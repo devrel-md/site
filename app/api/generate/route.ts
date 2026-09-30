@@ -128,11 +128,24 @@ export async function POST(request: Request): Promise<Response> {
           return;
         }
 
+        if (outcome.status === "no_sources") {
+          send(
+            sseEvent("error", {
+              reason: "no_sources",
+              message:
+                "We couldn't read enough of that site to write an accurate file, so we didn't guess. The pages may block automated readers, need JavaScript to show their content, or sit behind a login. Try your docs home or quickstart URL instead, or ask your own agent, which can read your repository:",
+              alternative: "Read https://devrel.md and create a DEVREL.md for this repo.",
+            })
+          );
+          return;
+        }
+
         if (outcome.status !== "success") {
           send(
             sseEvent("error", {
               reason: "exhausted",
-              message: "That draft did not come out right. Try again in a moment, or a different URL.",
+              message:
+                "We couldn't produce a draft we could stand behind from those pages, so we didn't show one. Try your docs home or quickstart URL, or try again in a moment.",
             })
           );
           return;

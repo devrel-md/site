@@ -6,6 +6,7 @@ import { isFreeModelCircuitOpen } from "@/lib/circuitBreaker";
 import { isOverDailySpendCap } from "@/lib/spendCap";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/generatorPrompt";
 import { discoverPages } from "@/lib/discoverPages";
+import { groundingProblems, hasEnoughSource } from "@/lib/grounding";
 
 export interface GenerateSuccess {
   status: "success";
@@ -16,7 +17,8 @@ export interface GenerateSuccess {
 }
 
 export interface GenerateFailure {
-  status: "capped" | "exhausted";
+  // no_sources: we couldn't read enough of the site to write anything true.
+  status: "capped" | "exhausted" | "no_sources";
 }
 
 export type GenerateOutcome = GenerateSuccess | GenerateFailure;
@@ -85,9 +87,12 @@ export async function generateDevrelMd(params: {
     discoverPages(params.inputUrl),
     buildSystemPrompt(),
   ]);
+  params.onStatus?.({ stage: "read", pages: pages.length });
+  // Never let a model write from memory: with nothing to read, it invents.
+  if (!hasEnoughSource(pages)) return { status: "no_sources" };
+
   const today = new Date().toISOString().slice(0, 10);
   const userPrompt = buildUserPrompt(params.inputUrl, pages, today);
-  params.onStatus?.({ stage: "read", pages: pages.length });
 
   let attempt = 0;
   for (const step of chain) {
@@ -138,7 +143,9 @@ export async function generateDevrelMd(params: {
     }
 
     const { result } = outcome;
-    const problems = validate(result.text);
+    // Structure first, then provenance: a well-formed file with invented
+    // figures is still a failure.
+    const problems = [...validate(result.text), ...groundingProblems(result.text, pages)];
     const servedModel = result.servedModel ?? step.model;
     const markdown = result.text.trim();
 
