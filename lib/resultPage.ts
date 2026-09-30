@@ -1,6 +1,6 @@
 import { escapeHtml } from "@/lib/html";
 import { ROLES, TEAM_SIZES } from "@/lib/qualify";
-import { earliestBrokenGate } from "@/lib/funnelGates";
+import { nextStep } from "@/lib/funnelGates";
 import type { FunnelGate } from "@/lib/results";
 
 const SKILL_FOR_STAGE: Record<string, { slug: string; note: string }> = {
@@ -11,27 +11,96 @@ const SKILL_FOR_STAGE: Record<string, { slug: string; note: string }> = {
   Monetization: { slug: "devrel-metrics-plan", note: "pair paying with a trust signal, not just a price" },
 };
 
+// What a team measures to judge each gate. Only the team has these numbers,
+// which is why a gate read from public pages is usually "needs your data".
+const MEASURE_FOR_STAGE: Record<string, string> = {
+  Awareness: "where your signups come from, and which sources go on to activate",
+  Onboarding: "the median time from signup to a first successful call, and the share of new developers who get there",
+  Activation: "the share of signups who reach your activation event, and whether production usage is visible",
+  Engagement: "the share of community questions answered within 24 hours, and who answers them",
+  Monetization: "whether paying customers stay as engaged and trusting as they were before paying",
+};
+
+const STATUS: Record<FunnelGate["pass"], { label: string; className: string }> = {
+  yes: { label: "Passing", className: "pass-yes" },
+  no: { label: "Failing", className: "pass-no" },
+  unknown: { label: "Needs your data", className: "pass-unknown" },
+  "n/a": { label: "Not applicable yet", className: "pass-na" },
+};
+
+function saysNothing(now: string): boolean {
+  return !now.trim() || /^unknown\.?$/i.test(now.trim()) || /^not stated in public docs\.?$/i.test(now.trim());
+}
+
+function headline(gates: FunnelGate[]): string {
+  const judged = gates.filter((g) => g.pass === "yes" || g.pass === "no").length;
+  const needData = gates.filter((g) => g.pass === "unknown").length;
+  if (needData === 0) {
+    return `All ${gates.length} stage gates could be judged from what we read.`;
+  }
+  if (judged === 0) {
+    return (
+      `We read your public pages and wrote down what they say. None of the ${gates.length} stage gates can be judged ` +
+      "from outside, and that's normal: each one needs a number only your team has, such as time to first call " +
+      "or activation rate. The file is a starting point, not a verdict."
+    );
+  }
+  return (
+    `${judged} of ${gates.length} stage gates could be judged from your public pages. ` +
+    `The other ${needData} need a number only your team has.`
+  );
+}
+
 export function stageGatesHtml(gates: FunnelGate[]): string {
   if (gates.length === 0) return "";
-  const broken = earliestBrokenGate(gates);
 
-  const rows = gates
+  const cards = gates
     .map((g) => {
-      const passClass = g.pass === "yes" ? "pass-yes" : g.pass === "no" ? "pass-no" : "pass-unknown";
-      return `<div class="stage-row"><span>${escapeHtml(g.stage)}</span><span class="${passClass}">${escapeHtml(g.pass)}</span></div>`;
+      const status = STATUS[g.pass];
+      const found = saysNothing(g.now)
+        ? "<p class=\"gate-found gate-empty\">Your public pages don't say.</p>"
+        : `<p class="gate-found"><strong>What we found:</strong> ${escapeHtml(g.now)}</p>`;
+      const measure =
+        g.pass === "unknown" && MEASURE_FOR_STAGE[g.stage]
+          ? `<p class="gate-measure"><strong>To judge it, measure</strong> ${escapeHtml(MEASURE_FOR_STAGE[g.stage]!)}.</p>`
+          : "";
+      return `<div class="gate-card">
+<div class="gate-head"><h3>${escapeHtml(g.stage)}</h3><span class="gate-status ${status.className}">${status.label}</span></div>
+<p class="gate-rule">Gate: ${escapeHtml(g.gate)}</p>
+${found}
+${measure}
+</div>`;
     })
     .join("\n");
 
-  const skill = broken ? SKILL_FOR_STAGE[broken.stage] : undefined;
-  const nextSkills = skill
-    ? `<p><strong>Next skill to run:</strong> <a href="/skills/${skill.slug}">${skill.slug}</a>, to ${escapeHtml(skill.note)}.</p>`
-    : `<p>All five stage gates pass. <a href="/skills/devrel-metrics-plan">devrel-metrics-plan</a> keeps them that way.</p>`;
+  const step = nextStep(gates);
+  let next: string;
+  if (step.kind === "fix") {
+    const skill = SKILL_FOR_STAGE[step.gate.stage];
+    next =
+      `<p><strong>Fix first: ${escapeHtml(step.gate.stage)}.</strong> It's the earliest stage we know is failing, ` +
+      "and later stages can't do better than it.</p>" +
+      (skill
+        ? `<p><strong>Next skill to run:</strong> <a href="/skills/${skill.slug}">${skill.slug}</a>, to ${escapeHtml(skill.note)}.</p>`
+        : "");
+  } else if (step.kind === "measure") {
+    const onboarding = step.gate.stage === "Onboarding";
+    next =
+      `<p><strong>Measure first: ${escapeHtml(step.gate.stage)}.</strong> ` +
+      (onboarding
+        ? "Time to first call is the North Star in <em>How to Build Developer Ecosystems</em>, and it's the one gate you can measure yourself this week: time a new developer through your quickstart.</p>" +
+          '<p><strong>Next skills to run:</strong> <a href="/skills/quickstart-friction-check">quickstart-friction-check</a> to walk your quickstart like a new developer, then <a href="/skills/devrel-metrics-plan">devrel-metrics-plan</a> to start tracking all five gates.</p>'
+        : `Measure ${escapeHtml(MEASURE_FOR_STAGE[step.gate.stage] ?? "it")}.</p>` +
+          '<p><strong>Next skill to run:</strong> <a href="/skills/devrel-metrics-plan">devrel-metrics-plan</a>, to start tracking all five gates.</p>');
+  } else {
+    next = `<p>All five stage gates pass. <a href="/skills/devrel-metrics-plan">devrel-metrics-plan</a> keeps them that way.</p>`;
+  }
 
   return `<div class="callout">
 <h2 id="stage-gates">Stage gates</h2>
-<div class="stage-gates">${rows}</div>
-${broken ? `<p><strong>Fix first:</strong> ${escapeHtml(broken.stage)}, the earliest stage that is not passing.</p>` : ""}
-${nextSkills}
+<p class="gates-headline">${escapeHtml(headline(gates))}</p>
+<div class="gate-cards">${cards}</div>
+${next}
 </div>`;
 }
 

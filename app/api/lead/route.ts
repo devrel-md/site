@@ -67,7 +67,9 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  const response = NextResponse.redirect(new URL(`/r/${result.id}`, request.url), { status: 303 });
+  // Relative Location: behind the proxy, request.url is the container's own
+  // address (http://0.0.0.0:3000), which the browser can't reach.
+  const response = new NextResponse(null, { status: 303, headers: { Location: `/r/${result.id}` } });
   response.cookies.set(unlockCookieName(result.id), lead.lead_token, {
     httpOnly: false,
     sameSite: "lax",

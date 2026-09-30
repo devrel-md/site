@@ -34,3 +34,22 @@ export function extractFunnelGates(markdown: string): FunnelGate[] {
 export function earliestBrokenGate(gates: FunnelGate[]): FunnelGate | null {
   return gates.find((g) => g.pass === "no" || g.pass === "unknown") ?? null;
 }
+
+export type NextStep =
+  | { kind: "fix"; gate: FunnelGate }
+  | { kind: "measure"; gate: FunnelGate }
+  | { kind: "maintain" };
+
+/** What to do next. A gate known to fail is fixed first (earliest in the
+ * funnel). With no known failure but gates that need data, measure first,
+ * starting with Onboarding: time to first call is the book's North Star and
+ * the one a team can measure itself this week. */
+export function nextStep(gates: FunnelGate[]): NextStep {
+  const failing = gates.find((g) => g.pass === "no");
+  if (failing) return { kind: "fix", gate: failing };
+  const unknown = gates.filter((g) => g.pass === "unknown");
+  if (unknown.length > 0) {
+    return { kind: "measure", gate: unknown.find((g) => g.stage === "Onboarding") ?? unknown[0]! };
+  }
+  return { kind: "maintain" };
+}
