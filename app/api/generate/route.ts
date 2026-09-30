@@ -102,6 +102,7 @@ export async function POST(request: Request): Promise<Response> {
         const outcome = await generateDevrelMd({
           inputUrl: rawUrl,
           onDelta: (chunk) => send(sseEvent("delta", chunk)),
+          onStatus: (status) => send(sseEvent("status", status)),
           persistResult: async (markdown, model, costUsd) => {
             const result = await createResult({
               url: rawUrl,

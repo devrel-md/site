@@ -104,6 +104,8 @@ export async function safeFetch(inputUrl: string): Promise<SafeFetchResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+    // The timeout covers reading the body too: a server that sends headers
+    // and then trickles (or stalls) must not hold a generation open.
     let response: Response;
     try {
       response = await fetch(current, {
@@ -114,11 +116,13 @@ export async function safeFetch(inputUrl: string): Promise<SafeFetchResult> {
           Accept: "text/html,text/markdown,text/plain;q=0.9,*/*;q=0.5",
         },
       });
-    } finally {
+    } catch (err) {
       clearTimeout(timeout);
+      throw err;
     }
 
     if (response.status >= 300 && response.status < 400) {
+      clearTimeout(timeout);
       const location = response.headers.get("location");
       if (!location) throw new SsrfBlockedError("redirect with no Location header");
       if (hop >= MAX_REDIRECTS) throw new SsrfBlockedError("too many redirects");
@@ -131,21 +135,27 @@ export async function safeFetch(inputUrl: string): Promise<SafeFetchResult> {
     let truncated = false;
     const chunks: Uint8Array[] = [];
     if (reader) {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          bytes += value.byteLength;
-          if (bytes > MAX_BYTES) {
-            truncated = true;
-            const remaining = MAX_BYTES - (bytes - value.byteLength);
-            if (remaining > 0) chunks.push(value.slice(0, remaining));
-            await reader.cancel().catch(() => {});
-            break;
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) {
+            bytes += value.byteLength;
+            if (bytes > MAX_BYTES) {
+              truncated = true;
+              const remaining = MAX_BYTES - (bytes - value.byteLength);
+              if (remaining > 0) chunks.push(value.slice(0, remaining));
+              await reader.cancel().catch(() => {});
+              break;
+            }
+            chunks.push(value);
           }
-          chunks.push(value);
         }
+      } finally {
+        clearTimeout(timeout);
       }
+    } else {
+      clearTimeout(timeout);
     }
     const text = Buffer.concat(chunks.map((c) => Buffer.from(c))).toString("utf8");
 
