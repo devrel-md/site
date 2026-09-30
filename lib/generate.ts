@@ -5,7 +5,7 @@ import { logAttempt } from "@/lib/attempts";
 import { isFreeModelCircuitOpen } from "@/lib/circuitBreaker";
 import { isOverDailySpendCap } from "@/lib/spendCap";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/generatorPrompt";
-import { discoverPages } from "@/lib/discoverPages";
+import { discoverPages, type InputPageStatus } from "@/lib/discoverPages";
 import { groundingProblems, hasEnoughSource } from "@/lib/grounding";
 
 export interface GenerateSuccess {
@@ -17,11 +17,26 @@ export interface GenerateSuccess {
 }
 
 export interface GenerateFailure {
-  // no_sources: we couldn't read enough of the site to write anything true.
-  status: "capped" | "exhausted" | "no_sources";
+  status: "capped" | "exhausted";
 }
 
-export type GenerateOutcome = GenerateSuccess | GenerateFailure;
+/** Why we couldn't read enough of the site to write anything true. */
+export type NoSourcesReason = "not_found" | "blocked_by_robots" | "refused" | "unreadable";
+
+export interface GenerateNoSources {
+  status: "no_sources";
+  reason: NoSourcesReason;
+  httpStatus: number | null;
+}
+
+export type GenerateOutcome = GenerateSuccess | GenerateFailure | GenerateNoSources;
+
+function noSourcesReason(input: InputPageStatus | undefined): NoSourcesReason {
+  if (input?.blockedByRobots) return "blocked_by_robots";
+  if (input?.httpStatus === 404 || input?.httpStatus === 410) return "not_found";
+  if (input?.httpStatus && input.httpStatus >= 400) return "refused";
+  return "unreadable";
+}
 
 /** Progress the page shows while it waits, so a slow run never looks dead. */
 export type GenerateStatus =
@@ -92,7 +107,9 @@ export async function generateDevrelMd(params: {
   ]);
   params.onStatus?.({ stage: "read", pages: pages.length });
   // Never let a model write from memory: with nothing to read, it invents.
-  if (!hasEnoughSource(pages)) return { status: "no_sources" };
+  if (!hasEnoughSource(pages)) {
+    return { status: "no_sources", reason: noSourcesReason(pages.input), httpStatus: pages.input?.httpStatus ?? null };
+  }
   await params.beforeFirstModelCall?.();
 
   const today = new Date().toISOString().slice(0, 10);

@@ -3,13 +3,33 @@ import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
 import { clientIp, hashIp } from "@/lib/hash";
 import { normaliseUrl, findCachedResult, createResult } from "@/lib/results";
 import { extractFunnelGates } from "@/lib/funnelGates";
-import { generateDevrelMd } from "@/lib/generate";
+import { generateDevrelMd, type NoSourcesReason } from "@/lib/generate";
 import { SKILLS_INSTALL_NOTE } from "@/lib/skillsPage";
 
 export const dynamic = "force-dynamic";
 
 function sseEvent(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+// Say why we couldn't read the site, so people know what to change. Each
+// message ends by leading into the agent prompt shown under it.
+function noSourcesMessage(reason: NoSourcesReason, httpStatus: number | null): string {
+  const tail =
+    "Try your docs home or quickstart URL instead, or ask your own agent, which can read your repository:";
+  switch (reason) {
+    case "not_found":
+      return `That page doesn't exist: the site returned ${httpStatus ?? 404} (not found). Check the URL for typos. ${tail}`;
+    case "blocked_by_robots":
+      return `That site's robots.txt asks automated readers like ours not to read that page, so we didn't. ${tail}`;
+    case "refused":
+      return `That page refused our request (HTTP ${httpStatus}). It may need a login or block automated readers. ${tail}`;
+    case "unreadable":
+      return (
+        "We couldn't read enough of that site to write an accurate file, so we didn't guess. The pages may " +
+        `need JavaScript to show their content, or have very little text. ${tail}`
+      );
+  }
 }
 
 // X-Accel-Buffering stops the nginx proxy in front of the app from holding the
@@ -135,8 +155,7 @@ export async function POST(request: Request): Promise<Response> {
           send(
             sseEvent("error", {
               reason: "no_sources",
-              message:
-                "We couldn't read enough of that site to write an accurate file, so we didn't guess. The pages may block automated readers, need JavaScript to show their content, or sit behind a login. Try your docs home or quickstart URL instead, or ask your own agent, which can read your repository:",
+              message: noSourcesMessage(outcome.reason, outcome.httpStatus),
               alternative: "Read https://devrel.md and create a DEVREL.md for this repo.",
             })
           );

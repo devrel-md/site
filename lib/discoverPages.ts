@@ -12,6 +12,14 @@ export interface FetchedPage {
   content: string;
 }
 
+/** What happened to the URL the person gave us, so a failed run can say why. */
+export interface InputPageStatus {
+  httpStatus: number | null;
+  blockedByRobots: boolean;
+}
+
+export type DiscoveredPages = FetchedPage[] & { input?: InputPageStatus };
+
 function isMarkdownLike(url: string, contentType: string | null): boolean {
   if (url.endsWith(".md") || url.endsWith(".txt")) return true;
   if (!contentType) return false;
@@ -68,15 +76,19 @@ function findLink(
 
 const NON_TECH = [/\/blog\//, /\/news\//, /\/articles\//, /\/posts\//, /\/case-studies\//];
 
-export async function discoverPages(inputUrl: string): Promise<FetchedPage[]> {
+export async function discoverPages(inputUrl: string): Promise<DiscoveredPages> {
   const origin = new URL(inputUrl).origin;
   const pages: FetchedPage[] = [];
 
   let inputHtml = "";
   const inputPathname = new URL(inputUrl).pathname;
-  if (!(await isDisallowed(origin, inputPathname))) {
+  const input: InputPageStatus = { httpStatus: null, blockedByRobots: false };
+  if (await isDisallowed(origin, inputPathname)) {
+    input.blockedByRobots = true;
+  } else {
     try {
       const raw = await safeFetch(inputUrl);
+      input.httpStatus = raw.status;
       if (raw.status === 200) {
         inputHtml = raw.text;
         const markdown = isMarkdownLike(raw.url, raw.headers.get("content-type"));
@@ -130,5 +142,5 @@ export async function discoverPages(inputUrl: string): Promise<FetchedPage[]> {
     if (content) pages.push({ url: item.url, label: item.label, content });
   }
 
-  return pages;
+  return Object.assign(pages, { input });
 }
