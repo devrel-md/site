@@ -1,5 +1,11 @@
 import { env } from "@/lib/env";
-import { OPENROUTER_URL, GENERATION_MAX_TOKENS, GENERATION_TEMPERATURE } from "@/lib/generatorConfig";
+import {
+  OPENROUTER_URL,
+  GENERATION_MAX_TOKENS,
+  GENERATION_TEMPERATURE,
+  STREAM_IDLE_TIMEOUT_MS,
+  STREAM_TOTAL_TIMEOUT_MS,
+} from "@/lib/generatorConfig";
 
 export interface StreamResult {
   text: string;
@@ -27,14 +33,31 @@ export async function streamCompletion(params: {
   systemPrompt: string;
   userPrompt: string;
   firstTokenTimeoutMs: number;
+  idleTimeoutMs?: number;
+  totalTimeoutMs?: number;
   onDelta?: (chunk: string) => void;
 }): Promise<StreamOutcome> {
-  const { models, systemPrompt, userPrompt, firstTokenTimeoutMs, onDelta } = params;
+  const {
+    models,
+    systemPrompt,
+    userPrompt,
+    firstTokenTimeoutMs,
+    idleTimeoutMs = STREAM_IDLE_TIMEOUT_MS,
+    totalTimeoutMs = STREAM_TOTAL_TIMEOUT_MS,
+    onDelta,
+  } = params;
   const start = Date.now();
   const controller = new AbortController();
   let firstTokenTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
     controller.abort();
   }, firstTokenTimeoutMs);
+  const totalTimer = setTimeout(() => controller.abort(), totalTimeoutMs);
+  let idleTimer: ReturnType<typeof setTimeout> | null = null;
+  const clearTimers = () => {
+    if (firstTokenTimer) clearTimeout(firstTokenTimer);
+    if (idleTimer) clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
+  };
 
   let response: Response;
   try {
@@ -61,14 +84,14 @@ export async function streamCompletion(params: {
       }),
     });
   } catch (err) {
-    if (firstTokenTimer) clearTimeout(firstTokenTimer);
+    clearTimers();
     const elapsedMs = Date.now() - start;
     if (controller.signal.aborted) return { kind: "timeout", firstTokenMs: null, elapsedMs };
     return { kind: "error", message: (err as Error).message, elapsedMs };
   }
 
   if (!response.ok || !response.body) {
-    if (firstTokenTimer) clearTimeout(firstTokenTimer);
+    clearTimers();
     const bodyText = await response.text().catch(() => "");
     return {
       kind: "error",
@@ -125,6 +148,10 @@ export async function streamCompletion(params: {
               firstTokenTimer = null;
             }
           }
+          // A stream that has started but then stalls would otherwise hang
+          // the request forever.
+          if (idleTimer) clearTimeout(idleTimer);
+          idleTimer = setTimeout(() => controller.abort(), idleTimeoutMs);
           text += delta;
           onDelta?.(delta);
         }
@@ -146,7 +173,7 @@ export async function streamCompletion(params: {
     // rather than losing the generation outright. The quality gate will catch
     // anything that matters.
   } finally {
-    if (firstTokenTimer) clearTimeout(firstTokenTimer);
+    clearTimers();
   }
 
   if (firstTokenMs === null) {

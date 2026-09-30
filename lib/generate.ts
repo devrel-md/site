@@ -1,4 +1,4 @@
-import { MODEL_CHAIN, FIRST_TOKEN_TIMEOUT_MS } from "@/lib/generatorConfig";
+import { MODEL_CHAIN, FIRST_TOKEN_TIMEOUT_MS, GENERATION_DEADLINE_MS } from "@/lib/generatorConfig";
 import { streamCompletion } from "@/lib/openrouter";
 import { validate } from "@/lib/validator";
 import { logAttempt } from "@/lib/attempts";
@@ -20,6 +20,13 @@ export interface GenerateFailure {
 }
 
 export type GenerateOutcome = GenerateSuccess | GenerateFailure;
+
+/** Progress the page shows while it waits, so a slow run never looks dead. */
+export type GenerateStatus =
+  | { stage: "reading" }
+  | { stage: "read"; pages: number }
+  | { stage: "drafting"; attempt: number }
+  | { stage: "retrying"; reason: "slow" | "error" | "quality" };
 
 interface ChainStep {
   model: string;
@@ -62,6 +69,7 @@ export async function generateDevrelMd(params: {
   inputUrl: string;
   onDelta?: (chunk: string) => void;
   onModelStart?: (model: string) => void;
+  onStatus?: (status: GenerateStatus) => void;
   /** Called once validation passes, before the attempt is logged, so the
    * logged attempt can carry the resulting row's id. */
   persistResult?: (markdown: string, model: string, costUsd: number) => Promise<string>;
@@ -71,19 +79,26 @@ export async function generateDevrelMd(params: {
     return { status: "capped" };
   }
 
+  const startedAt = Date.now();
+  params.onStatus?.({ stage: "reading" });
   const [pages, systemPrompt] = await Promise.all([
     discoverPages(params.inputUrl),
     buildSystemPrompt(),
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const userPrompt = buildUserPrompt(params.inputUrl, pages, today);
+  params.onStatus?.({ stage: "read", pages: pages.length });
 
+  let attempt = 0;
   for (const step of chain) {
+    if (Date.now() - startedAt > GENERATION_DEADLINE_MS) break;
     // Re-check the spend cap right before every paid call: an earlier step
     // in this same request, or a concurrent request, may have crossed it.
     if (step.isPaid && (await isOverDailySpendCap())) continue;
 
+    attempt += 1;
     params.onModelStart?.(step.model);
+    params.onStatus?.({ stage: "drafting", attempt });
     const outcome = await streamCompletion({
       models: step.models,
       systemPrompt,
@@ -103,6 +118,7 @@ export async function generateDevrelMd(params: {
         tokensOut: null,
         costUsd: 0,
       });
+      params.onStatus?.({ stage: "retrying", reason: "slow" });
       continue;
     }
 
@@ -117,6 +133,7 @@ export async function generateDevrelMd(params: {
         tokensOut: null,
         costUsd: 0,
       });
+      params.onStatus?.({ stage: "retrying", reason: "error" });
       continue;
     }
 
@@ -144,6 +161,7 @@ export async function generateDevrelMd(params: {
     if (problems.length === 0) {
       return { status: "success", markdown, model: servedModel, costUsd: result.costUsd, resultId };
     }
+    params.onStatus?.({ stage: "retrying", reason: "quality" });
   }
 
   return { status: "exhausted" };

@@ -11,6 +11,15 @@ export const FIRST_TOKEN_TIMEOUT_MS = {
   paid: 30_000,
 };
 
+// Once a model has started writing: give up if it goes quiet for this long,
+// or if the whole draft takes longer than the total cap.
+export const STREAM_IDLE_TIMEOUT_MS = 30_000;
+export const STREAM_TOTAL_TIMEOUT_MS = 120_000;
+
+// Don't start another model in the chain once a request has run this long;
+// the person has been waiting long enough.
+export const GENERATION_DEADLINE_MS = 180_000;
+
 export const CIRCUIT_BREAKER = {
   windowSize: 10,
   failureThreshold: 7,

@@ -606,3 +606,36 @@ body.home main pre {
 .turnstile-widget {
   min-height: 65px;
 }
+
+.generate-progress {
+  margin: 1rem 0;
+}
+
+.generate-progress > span:not(.progress-dot) {
+  font-weight: 600;
+}
+
+.progress-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: progress-pulse 1.2s ease-in-out infinite;
+}
+
+.progress-elapsed {
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-dot { animation: none; }
+}

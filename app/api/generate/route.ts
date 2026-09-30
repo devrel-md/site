@@ -12,6 +12,18 @@ function sseEvent(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
+// X-Accel-Buffering stops the nginx proxy in front of the app from holding the
+// stream back until it finishes.
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream; charset=utf-8",
+  "Cache-Control": "no-cache, no-transform",
+  "X-Accel-Buffering": "no",
+};
+
+// A comment line every few seconds keeps the proxy from closing a connection
+// that is quiet while pages are fetched or a model is thinking.
+const HEARTBEAT_MS = 10_000;
+
 export async function POST(request: Request): Promise<Response> {
   let body: { url?: string; turnstileToken?: string };
   try {
@@ -59,16 +71,38 @@ export async function POST(request: Request): Promise<Response> {
         controller.close();
       },
     });
-    return new Response(stream, { headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform" } });
+    return new Response(stream, { headers: SSE_HEADERS });
   }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let open = true;
+      // The browser can go away mid-run; keep generating so the result is
+      // still saved, but stop writing to a stream nobody is reading.
+      const send = (chunk: string) => {
+        if (!open) return;
+        try {
+          controller.enqueue(encoder.encode(chunk));
+        } catch {
+          open = false;
+        }
+      };
+      const close = () => {
+        if (!open) return;
+        open = false;
+        try {
+          controller.close();
+        } catch {
+          // already closed by the client
+        }
+      };
+      const heartbeat = setInterval(() => send(": ping\n\n"), HEARTBEAT_MS);
       try {
         const outcome = await generateDevrelMd({
           inputUrl: rawUrl,
-          onDelta: (chunk) => controller.enqueue(encoder.encode(sseEvent("delta", chunk))),
+          onDelta: (chunk) => send(sseEvent("delta", chunk)),
+          onStatus: (status) => send(sseEvent("status", status)),
           persistResult: async (markdown, model, costUsd) => {
             const result = await createResult({
               url: rawUrl,
@@ -83,44 +117,37 @@ export async function POST(request: Request): Promise<Response> {
         });
 
         if (outcome.status === "capped") {
-          controller.enqueue(
-            encoder.encode(
-              sseEvent("error", {
-                reason: "capped",
-                message:
-                  "We are back tomorrow: today's generation budget is spent. In the meantime, any agent can do this without the generator:",
-                alternative: SKILLS_INSTALL_NOTE,
-              })
-            )
+          send(
+            sseEvent("error", {
+              reason: "capped",
+              message:
+                "We are back tomorrow: today's generation budget is spent. In the meantime, any agent can do this without the generator:",
+              alternative: SKILLS_INSTALL_NOTE,
+            })
           );
-          controller.close();
           return;
         }
 
         if (outcome.status !== "success") {
-          controller.enqueue(
-            encoder.encode(
-              sseEvent("error", {
-                reason: "exhausted",
-                message: "That draft did not come out right. Try again in a moment, or a different URL.",
-              })
-            )
+          send(
+            sseEvent("error", {
+              reason: "exhausted",
+              message: "That draft did not come out right. Try again in a moment, or a different URL.",
+            })
           );
-          controller.close();
           return;
         }
 
-        controller.enqueue(encoder.encode(sseEvent("done", { id: outcome.resultId, status: "success" })));
-        controller.close();
+        send(sseEvent("done", { id: outcome.resultId, status: "success" }));
       } catch (err) {
         console.error("generate stream failed", err);
-        controller.enqueue(
-          encoder.encode(sseEvent("error", { reason: "internal", message: "Something went wrong. Try again." }))
-        );
-        controller.close();
+        send(sseEvent("error", { reason: "internal", message: "Something went wrong. Try again." }));
+      } finally {
+        clearInterval(heartbeat);
+        close();
       }
     },
   });
 
-  return new Response(stream, { headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform" } });
+  return new Response(stream, { headers: SSE_HEADERS });
 }

@@ -20,6 +20,27 @@ declare global {
   }
 }
 
+type GenerateStatus =
+  | { stage: "reading" }
+  | { stage: "read"; pages: number }
+  | { stage: "drafting"; attempt: number }
+  | { stage: "retrying"; reason: "slow" | "error" | "quality" };
+
+function describeStatus(status: GenerateStatus): string {
+  switch (status.stage) {
+    case "reading":
+      return "Reading your docs";
+    case "read":
+      return status.pages === 1 ? "Read 1 page. Starting the draft" : `Read ${status.pages} pages. Starting the draft`;
+    case "drafting":
+      return status.attempt === 1 ? "Drafting your DEVREL.md" : "Drafting again with another model";
+    case "retrying":
+      if (status.reason === "quality") return "That draft didn't pass our checks. Trying another model";
+      if (status.reason === "slow") return "The first model was too slow. Switching to another";
+      return "A model failed. Switching to another";
+  }
+}
+
 export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
   const [url, setUrl] = useState("");
   const [token, setToken] = useState("");
@@ -28,6 +49,15 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
   const [error, setError] = useState<string | null>(null);
   const [alternative, setAlternative] = useState<string | null>(null);
   const redirectRef = useRef<string | null>(null);
+  const [status, setStatus] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!streaming) return;
+    const started = Date.now();
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [streaming]);
 
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [submitHint, setSubmitHint] = useState<string | null>(null);
@@ -74,7 +104,10 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
     setError(null);
     setAlternative(null);
     setOutput("");
+    setStatus("Starting");
+    setElapsed(0);
     setStreaming(true);
+    let finished = false;
 
     try {
       const res = await fetch("/api/generate", {
@@ -112,13 +145,24 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
 
           if (eventName === "delta") {
             setOutput((prev) => prev + data);
+          } else if (eventName === "status") {
+            const next = data as GenerateStatus;
+            // A new model starts from scratch; drop the draft that failed.
+            if (next.stage === "drafting" && next.attempt > 1) setOutput("");
+            setStatus(describeStatus(next));
           } else if (eventName === "done") {
+            finished = true;
+            setStatus("Done. Opening your result");
             redirectRef.current = `/r/${data.id}`;
           } else if (eventName === "error") {
+            finished = true;
             setError(data.message ?? "Something went wrong.");
             setAlternative(data.alternative ?? null);
           }
         }
+      }
+      if (!finished) {
+        setError("The connection closed before the draft finished. Try again, and if it keeps happening, email hello@devrel.md.");
       }
     } catch {
       setError("The connection dropped. Try again.");
@@ -126,6 +170,10 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
       setStreaming(false);
       if (redirectRef.current) {
         window.location.href = redirectRef.current;
+      } else {
+        // Turnstile tokens are single use; get a fresh one for the next try.
+        setToken("");
+        if (window.turnstile && widgetId.current) window.turnstile.reset(widgetId.current);
       }
     }
   }
@@ -169,6 +217,15 @@ export function GenerateForm({ turnstileSiteKey }: { turnstileSiteKey: string })
         </div>
       )}
 
+      {streaming && (
+        <div className="generate-progress" role="status" aria-live="polite">
+          <span className="progress-dot" aria-hidden="true" />
+          <span>
+            {status}... <span className="progress-elapsed">{elapsed}s</span>
+          </span>
+          <p className="form-hint">A full draft usually takes 30 seconds to two minutes. You can watch it being written below.</p>
+        </div>
+      )}
       {output && (
         <pre className="install-block" aria-live="polite" style={{ whiteSpace: "pre-wrap" }}>
           {output}
