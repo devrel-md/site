@@ -27,8 +27,8 @@ export default function GeneratePage() {
       <h1>Generate a DEVREL.md</h1>
       <p>
         Paste a product&apos;s docs or home page URL. We fetch a handful of public pages, follow the
-        spec, and stream a draft back in about half a minute. Nothing is stored except the result and,
-        if you choose to see the copy and download buttons, your email.
+        spec, and stream a draft back in about half a minute. You can read, copy and download it
+        without an account or email. We store the generated result; community updates are optional.
       </p>
       <GenerateForm turnstileSiteKey={env.turnstileSiteKey} />
     </SiteShell>

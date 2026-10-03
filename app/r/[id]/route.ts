@@ -2,10 +2,8 @@ import { wantsMarkdown, markdownHeaders, markdownResponse, htmlResponse } from "
 import { parseMarkdown } from "@/lib/markdown";
 import { renderPage } from "@/lib/page";
 import { getResult } from "@/lib/results";
-import { getLeadByToken } from "@/lib/leads";
-import { unlockCookieName } from "@/lib/unlock";
 import { frontmatterPanelHtml } from "@/lib/frontmatterPanel";
-import { stageGatesHtml, rawToggleHtml, leadFormHtml, unlockedPanelHtml } from "@/lib/resultPage";
+import { stageGatesHtml, rawToggleHtml, communityFormHtml, fileActionsHtml } from "@/lib/resultPage";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -45,12 +43,6 @@ export async function GET(request: Request, { params }: Params): Promise<Respons
     return new Response(result.markdown, { status: 200, headers });
   }
 
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  const cookieMatch = cookieHeader.match(new RegExp(`${unlockCookieName(id)}=([^;]+)`));
-  const leadToken = cookieMatch ? decodeURIComponent(cookieMatch[1]!) : null;
-  const lead = leadToken ? await getLeadByToken(leadToken) : undefined;
-  const unlocked = Boolean(lead && lead.result_id === id);
-
   const { html: bodyHtml, frontmatter } = await parseMarkdown(result.markdown);
 
   const preContent = [
@@ -59,9 +51,7 @@ export async function GET(request: Request, { params }: Params): Promise<Respons
     rawToggleHtml(result.markdown),
   ].join("\n");
 
-  const postContent = unlocked
-    ? unlockedPanelHtml(id, lead!.qualified, lead!.lead_token)
-    : leadFormHtml(id);
+  const postContent = fileActionsHtml(id) + communityFormHtml();
 
   const page = renderPage({
     title: `${(frontmatter.product as string) ?? "Result"}: DEVREL.md`,

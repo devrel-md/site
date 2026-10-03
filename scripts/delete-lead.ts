@@ -15,17 +15,13 @@ async function main() {
 
   const pool = new Pool({ connectionString: databaseUrl });
   const leads = await pool.query<{ id: string }>("select id from leads where email = $1", [email]);
-  if (leads.rows.length === 0) {
-    console.log(`No lead found for ${email}.`);
-    await pool.end();
-    return;
-  }
+  const subscribers = await pool.query("delete from community_subscribers where email = $1", [email.toLowerCase()]);
 
   for (const lead of leads.rows) {
     await pool.query("delete from outbox where lead_id = $1", [lead.id]);
     await pool.query("delete from leads where id = $1", [lead.id]);
   }
-  console.log(`Deleted ${leads.rows.length} lead(s) for ${email}.`);
+  console.log(`Deleted ${leads.rows.length} legacy lead(s) and ${subscribers.rowCount ?? 0} community subscription(s) for ${email}.`);
   await pool.end();
 }
 

@@ -63,17 +63,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
 export interface AudienceContact {
   email: string;
-  company: string;
-  role: string;
-  teamSize: string;
 }
 
 let warnedRestrictedApiKey = false;
 
-/** Upserts a contact to the Resend audience for future broadcasts. Logs and
- * no-ops when Resend or the audience id is unset, and never throws: a
- * sending-only RESEND_API_KEY can't do this (Resend returns 401
- * restricted_api_key), and that must not fail the lead flow or the outbox. */
+/** Syncs an explicitly opted-in community subscriber to the mailing audience. */
 export async function upsertAudienceContact(contact: AudienceContact): Promise<void> {
   if (!isConfigured("resend") || !env.resendAudienceId) {
     console.log(`[resend:not-configured] would upsert audience contact ${contact.email}`);
@@ -81,11 +75,20 @@ export async function upsertAudienceContact(contact: AudienceContact): Promise<v
   }
 
   try {
-    const result = await getClient().contacts.create({
+    const result = await getClient().contacts.update({
       audienceId: env.resendAudienceId,
       email: contact.email,
       unsubscribed: false,
     });
+    if (result.error && result.error.name === "not_found") {
+      const created = await getClient().contacts.create({
+        audienceId: env.resendAudienceId,
+        email: contact.email,
+        unsubscribed: false,
+      });
+      if (created.error) console.error("Resend audience create failed", created.error);
+      return;
+    }
 
     if (result.error) {
       // Resend's API returns 401 "restricted_api_key" for a sending-only
@@ -106,5 +109,19 @@ export async function upsertAudienceContact(contact: AudienceContact): Promise<v
     }
   } catch (err) {
     console.error("Resend audience upsert failed", err);
+  }
+}
+
+export async function unsubscribeAudienceContact(email: string): Promise<void> {
+  if (!isConfigured("resend") || !env.resendAudienceId) return;
+  try {
+    const result = await getClient().contacts.update({
+      audienceId: env.resendAudienceId,
+      email,
+      unsubscribed: true,
+    });
+    if (result.error) console.error("Resend audience unsubscribe failed", result.error);
+  } catch (err) {
+    console.error("Resend audience unsubscribe failed", err);
   }
 }
