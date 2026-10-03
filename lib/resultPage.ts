@@ -142,10 +142,24 @@ export function fileActionsHtml(resultId: string): string {
   btn.addEventListener('click', function () {
     var target = document.getElementById(btn.getAttribute('data-target'));
     if (!target) return;
-    navigator.clipboard.writeText(target.textContent || '').then(function () {
+    function copied() {
       btn.textContent = 'Copied';
       setTimeout(function () { btn.textContent = 'Copy Markdown'; }, 2000);
-    }, function () { btn.textContent = 'Select the raw Markdown above to copy it'; });
+    }
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents(target);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        if (document.execCommand('copy')) { copied(); return; }
+      } catch (error) {}
+      btn.textContent = 'Selected: press Ctrl+C or Command+C';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(target.textContent || '').then(copied, fallback);
+    } else fallback();
   });
 })();
 </script>`;
