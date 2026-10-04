@@ -1,3 +1,14 @@
+> **Historical document.** This is the original build brief of 28 September 2026. It is kept as written and is no longer the source of truth. These parts have been superseded:
+>
+> - The email gate on copy and download. Results are free to read, copy and download without an email address.
+> - The lead qualification form, the qualified-lead handoff and the Folk push for qualified leads. Community signup is now optional, email only and consent based, and creates no lead.
+> - The 5-email series. Its templates remain in `emails/` but nothing schedules them.
+> - The spec as the home page. `/` is now a short introduction and the spec lives at `/spec`.
+> - Local development with `docker compose`. Development uses a shared dev database through Infisical.
+> - Deployment being out of scope. The site deploys automatically from `main`.
+>
+> For current behaviour, setup and deployment, read `README.md`.
+
 # devrel.md site: build brief
 
 Owner: Marcos Placona, DevRel Bridge. Status: approved to build locally on 2026-09-28. Deployment is a separate, approved step.

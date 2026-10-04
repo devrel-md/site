@@ -4,7 +4,7 @@ The open DEVREL.md spec and a free skill library, plus a generator that drafts a
 
 ## Why it looks the way it does
 
-The site is the file. Every content page (`/`, `/spec`, `/example`, `/template`, `/skills`, `/skills/[name]`, `/validate`, `/privacy`, `/changelog`, `/api`, `/r/[id]`) is a Route Handler, not a React page. Each one:
+The site is the file. Every content page (`/`, `/spec`, `/quickstart`, `/example`, `/template`, `/skills`, `/skills/[name]`, `/validate`, `/privacy`, `/changelog`, `/api`, `/r/[id]`) is a Route Handler, not a React page. Each one:
 
 - Renders the same Markdown to full server-side HTML for browsers.
 - Returns the raw Markdown, unchanged, for `curl`, `wget`, `HTTPie` and anything else sending `Accept: text/markdown` or a wildcard `Accept` from a non-browser user agent, or for the matching `<path>.md` route.
@@ -46,8 +46,8 @@ app/                    Route Handlers (content pages, the generator API, /go, /
 lib/                    Everything else: content loading, Markdown, negotiation,
                          the SSRF-safe fetcher, the generator's pipeline, email, Folk
 db/migrations/          Plain numbered SQL, applied by db/migrate.ts (no ORM)
-emails/                 Markdown + frontmatter templates for the result email and
-                         the (currently disabled) failing-gate series
+emails/                 Markdown + frontmatter templates from the retired email flow
+                         (result email, failing-gate series). Nothing schedules them now
 content/spec, content/skills   Synced copies of the spec and the skill library
 scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
                          quality gate are ported from (kept for reference)
@@ -55,7 +55,7 @@ scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
 
 ### Data
 
-Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `community_subscribers`, legacy `leads` and `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. The client IP is the `X-Forwarded-For` entry that many places from the right as `TRUSTED_PROXY_HOPS` (default 1, the OpenShip edge, which appends the peer address); entries further left are client-controlled and ignored. IPv6 is keyed on its /64. A request with no trustworthy address shares one strict bucket (2 generations and 10 validations a day in total). `npm run delete-lead -- <email>` removes a subscriber or legacy lead and their outbox rows.
+Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `community_subscribers` (consent, confirmation and unsubscribe state for the optional community signup), legacy `leads` and `outbox` (the retired unlock flow; nothing writes to them now), `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. The client IP is the `X-Forwarded-For` entry that many places from the right as `TRUSTED_PROXY_HOPS` (default 1, the OpenShip edge, which appends the peer address); entries further left are client-controlled and ignored. IPv6 is keyed on its /64. A request with no trustworthy address shares one strict bucket (2 generations and 10 validations a day in total). `npm run delete-lead -- <email>` removes a subscriber or legacy lead and their outbox rows.
 
 ### The generator's fallback chain
 
@@ -81,7 +81,7 @@ npm run build
 npm test
 ```
 
-Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, including `/`, `/spec` and `/validate`), the SSRF guard (private ranges, blocked redirects), the validator (all 6 bake-off fixtures, asserted against the same problems `scripts/bakeoff/results.json` recorded), the fallback order and circuit breaker (OpenRouter mocked), the spend cap, `/go` redirects with UTM params, lead qualification, unsubscribe, `POST /api/validate` (both body formats, the rate limit, its own budget separate from the generator's), and the home page's FAQ/comparison restructuring.
+Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, including `/`, `/spec` and `/validate`), the SSRF guard (private ranges, blocked redirects), the validator (all 6 bake-off fixtures, asserted against the same problems `scripts/bakeoff/results.json` recorded), the fallback order and circuit breaker (OpenRouter mocked), the spend cap, `/go` redirects with UTM params, the free result page (raw Markdown, Copy and Download for everyone), the optional community signup and its consent rules, unsubscribe, the retired unlock endpoint returning 410, the legacy lead qualification rules, `POST /api/validate` (both body formats, the rate limit, its own budget separate from the generator's), and the home page's FAQ/comparison restructuring.
 
 ## Local end-to-end run
 
@@ -93,4 +93,34 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Deployment
 
-Out of scope for this PR by design. The production `Dockerfile` (Next.js standalone output) is here and builds; nothing here touches OpenShip, the Hetzner box, Cloudflare or DNS.
+Pushing to `main` deploys to production automatically. The workflow is `.github/workflows/deploy.yml`, and it runs on a self-hosted runner that lives on the OpenShip host, the only place OpenShip's API can be reached from. Deploys are serialised: a second push waits for the first to finish rather than overlapping it.
+
+For each push, in order:
+
+1. **Migrations first.** The runner applies any pending `db/migrations/*.sql` to the production database with `db/migrate.ts`. The connection string comes from a credentials file on the runner, not from GitHub secrets. If a migration fails, the job stops and nothing deploys.
+2. **Deploy.** `scripts/openship-deploy.py` sets `GIT_COMMIT_SHA` to the pushed commit, asks OpenShip to build and release exactly that commit, refuses to start while a previous build is still running, and waits for OpenShip to report it ready.
+3. **Health check.** The script then polls `/healthz` for up to two minutes until it returns `status: ok` with a `build_sha` equal to the pushed commit. If it never does, the job fails.
+
+A deploy is only finished when `/healthz` reports the commit you merged. Check it before telling anyone a change is live:
+
+```bash
+curl -s https://devrel.md/healthz
+```
+
+Because migrations run before the new code does, keep every migration additive (new tables and columns, no drops or renames in the same change as the code that stops using them) so the version still running keeps working in between.
+
+### Previews
+
+Every pull request gets a preview deployment, and the preview tool posts its address as a comment on the pull request. Previews are separate from the production deploy above: they are built from the pull request branch and never touch production.
+
+### Backups
+
+The production database is backed up nightly, encrypted, to object storage. `ops/backup/README.md` documents what runs, where the keys live, how to install the job on the host and how to restore.
+
+### Rolling back
+
+The deploy workflow always deploys the commit that triggered it. Its manual trigger (`workflow_dispatch`) takes no inputs and only runs on `main`, so running it by hand redeploys the current head of `main`, not an earlier commit.
+
+- **Normal route:** open a pull request that reverts the bad change (`git revert`), merge it, and let the usual deploy run. Then confirm `/healthz` reports the revert commit.
+- **Faster route, not yet exercised:** in the Actions tab, re-run the `Deploy` run for the last good commit on `main`. A re-run keeps that run's commit, so the workflow checks out, deploys and health-checks that commit. GitHub only allows re-running a run for 30 days after it started.
+- **The database is not rolled back.** Migrations only go forward, and additive migrations leave older code working against the newer schema. If data itself is damaged, restore from a backup as described in `ops/backup/README.md`.
