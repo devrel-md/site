@@ -4,6 +4,7 @@ description: Build a developer launch plan for a new API, SDK, product or featur
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Builds a channel-by-channel launch plan, after checking onboarding is ready for the traffic"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 2, 3, 8"
   homepage: https://devrel.md
 ---

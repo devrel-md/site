@@ -4,6 +4,7 @@ description: Run the ICP canvas and scoring worksheet from How to Build Develope
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Defines and scores your developer segments with the ICP canvas and fit score"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 1, App A.5, App A.6"
   homepage: https://devrel.md
 ---

@@ -10,3 +10,4 @@
 - `devrel-metrics-plan`: vanity swaps, metric pairs, dashboard spec, event schema and starter SQL
 - `devrel-launch-plan`: onboarding readiness gate, channel plan with metric pairs, relative-week timeline
 - `devrel-90-day-plan`: Foundation or Justification roadmap, week by week, with exit criteria
+- Every skill carries a short human `summary` under `metadata`, used by devrel.md catalogs. `description` is unchanged, so agent routing is unaffected
