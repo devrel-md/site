@@ -4,9 +4,11 @@ const confirmMock = vi.fn();
 const saveFolkMock = vi.fn();
 const audienceMock = vi.fn();
 const folkMock = vi.fn();
+const retryMock = vi.fn();
 vi.mock("@/lib/community", () => ({
   confirmCommunitySubscriber: (...args: unknown[]) => confirmMock(...args),
   saveCommunityFolkId: (...args: unknown[]) => saveFolkMock(...args),
+  retryMissingFolkSyncs: (...args: unknown[]) => retryMock(...args),
 }));
 vi.mock("@/lib/folk", () => ({ syncCommunityToFolk: (...args: unknown[]) => folkMock(...args) }));
 vi.mock("@/lib/resend", () => ({ upsertAudienceContact: (...args: unknown[]) => audienceMock(...args) }));
@@ -21,7 +23,7 @@ function post(token: string): Request {
 
 describe("community confirmation", () => {
   beforeEach(() => {
-    for (const m of [confirmMock, saveFolkMock, audienceMock, folkMock]) m.mockReset();
+    for (const m of [confirmMock, saveFolkMock, audienceMock, folkMock, retryMock]) m.mockReset();
     folkMock.mockResolvedValue("folk-123");
   });
 
@@ -49,6 +51,8 @@ describe("community confirmation", () => {
     expect(audienceMock).toHaveBeenCalledWith({ email: "reader@example.com" });
     expect(folkMock).toHaveBeenCalledWith("reader@example.com", null);
     expect(saveFolkMock).toHaveBeenCalledWith("reader@example.com", "folk-123");
+    // Heals earlier confirmations whose Folk sync failed, without redoing this one.
+    expect(retryMock).toHaveBeenCalledWith(10, "reader@example.com");
   });
 
   it("is idempotent: a second use of the link syncs nothing", async () => {
@@ -58,6 +62,7 @@ describe("community confirmation", () => {
     expect(await response.text()).toContain("already confirmed");
     expect(audienceMock).not.toHaveBeenCalled();
     expect(folkMock).not.toHaveBeenCalled();
+    expect(retryMock).not.toHaveBeenCalled();
   });
 
   it("does not resubscribe someone who unsubscribed after confirming", async () => {

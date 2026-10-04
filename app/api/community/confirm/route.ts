@@ -1,10 +1,12 @@
-import { confirmCommunitySubscriber, saveCommunityFolkId } from "@/lib/community";
+import { confirmCommunitySubscriber, retryMissingFolkSyncs, saveCommunityFolkId } from "@/lib/community";
 import { syncCommunityToFolk } from "@/lib/folk";
 import { escapeHtml } from "@/lib/html";
 import { renderPage } from "@/lib/page";
 import { upsertAudienceContact } from "@/lib/resend";
 
 export const dynamic = "force-dynamic";
+
+const FOLK_RETRY_BATCH = 10;
 
 function page(bodyHtml: string, status = 200): Response {
   const html = renderPage({
@@ -49,6 +51,8 @@ export async function POST(request: Request): Promise<Response> {
       await upsertAudienceContact({ email: subscriber.email });
       const folkId = await syncCommunityToFolk(subscriber.email, subscriber.folk_person_id);
       if (folkId) await saveCommunityFolkId(subscriber.email, folkId);
+      // Heal earlier confirmations whose Folk sync failed, a few at a time.
+      await retryMissingFolkSyncs(FOLK_RETRY_BATCH, subscriber.email);
       return page(`<p>You're subscribed to occasional DEVREL.md community updates at ${escapeHtml(subscriber.email)}. Every email includes an unsubscribe link.</p>`);
     }
     case "already_confirmed":

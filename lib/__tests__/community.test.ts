@@ -6,6 +6,8 @@ vi.mock("@/lib/db", () => ({
   queryOne: async (...args: unknown[]) => (await queryMock(...args))[0],
 }));
 const sendEmailMock = vi.fn();
+const folkMock = vi.fn();
+vi.mock("@/lib/folk", () => ({ syncCommunityToFolk: (...args: unknown[]) => folkMock(...args) }));
 vi.mock("@/lib/resend", () => ({ sendEmail: (...args: unknown[]) => sendEmailMock(...args) }));
 
 import {
@@ -13,6 +15,7 @@ import {
   CONFIRMATION_TTL_DAYS,
   confirmCommunitySubscriber,
   purgeExpiredPending,
+  retryMissingFolkSyncs,
   requestCommunitySignup,
   sendCommunityConfirmation,
 } from "@/lib/community";
@@ -118,5 +121,40 @@ describe("sendCommunityConfirmation", () => {
     expect(params.html).toContain("/api/unsubscribe?token=unsub-token");
     // sendEmail turns this into the List-Unsubscribe and List-Unsubscribe-Post headers.
     expect(params.leadToken).toBe("unsub-token");
+  });
+});
+
+describe("retryMissingFolkSyncs", () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+    folkMock.mockReset();
+  });
+
+  it("selects only confirmed, subscribed rows with no Folk id, oldest first, capped by the limit", async () => {
+    queryMock.mockResolvedValue([]);
+    await retryMissingFolkSyncs(10, "Just@Confirmed.com");
+    const [sql, params] = queryMock.mock.calls[0]!;
+    expect(String(sql)).toMatch(/confirmed_at is not null/i);
+    expect(String(sql)).toMatch(/unsubscribed_at is null/i);
+    expect(String(sql)).toMatch(/folk_person_id is null/i);
+    expect(String(sql)).toMatch(/order by confirmed_at/i);
+    expect(params).toEqual([10, "just@confirmed.com"]);
+  });
+
+  it("syncs each eligible row and saves the Folk id, skipping rows whose sync fails", async () => {
+    queryMock.mockImplementation(async (sql: string) => (/^\s*select/i.test(sql) ? [{ email: "a@example.com" }, { email: "b@example.com" }] : []));
+    folkMock.mockResolvedValueOnce(null).mockResolvedValueOnce("per_b");
+    expect(await retryMissingFolkSyncs(10)).toBe(1);
+    expect(folkMock).toHaveBeenNthCalledWith(1, "a@example.com", null);
+    expect(folkMock).toHaveBeenNthCalledWith(2, "b@example.com", null);
+    const updates = queryMock.mock.calls.filter(([sql]) => /update community_subscribers set folk_person_id/i.test(String(sql)));
+    expect(updates).toHaveLength(1);
+    expect(updates[0]![1]).toEqual(["b@example.com", "per_b"]);
+  });
+
+  it("does not throw when the database fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    queryMock.mockRejectedValue(new Error("db down"));
+    expect(await retryMissingFolkSyncs(10)).toBe(0);
   });
 });

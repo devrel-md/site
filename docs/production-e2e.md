@@ -46,8 +46,8 @@ In a private window with no cookies:
 - [ ] Before confirming: `select email, consented_at, confirmed_at, unsubscribed_at, folk_person_id is not null as in_folk from community_subscribers where email = '<address>';` shows the row pending (`confirmed_at` empty, not in Folk), and the address is not yet in the Resend audience or Folk.
 - [ ] Click the confirmation link. The page says you are subscribed, and the same query now shows `confirmed_at` set and `in_folk` true.
 - [ ] Resend: the address is in the community audience (Resend dashboard, Audiences). Needs a full-access `RESEND_API_KEY`; with a sending-only key the app logs "Resend audience upsert skipped" instead.
-- [ ] Folk: the person exists, tagged `source: devrel.md` and `community: subscribed`.
-- [ ] Open the unsubscribe link from the email. `unsubscribed_at` is now set, Resend marks the contact unsubscribed, and Folk shows `community: unsubscribed`.
+- [ ] Folk: the person exists, is in the "DEVREL.md community" group and has an opt-in note.
+- [ ] Open the unsubscribe link from the email. `unsubscribed_at` is now set, Resend marks the contact unsubscribed, and Folk has removed them from the "DEVREL.md community" group and added a withdrawal note.
 
 ## 5. Tracked redirect
 
