@@ -8,6 +8,9 @@ The API token is read from the box's local credential store, never from GitHub s
 
 Also sets GIT_COMMIT_SHA before building, because OpenShip injects no build identity of its own and
 /healthz reports it. The health check then waits until devrel.md serves exactly this commit.
+
+A live deploy whose /healthz reports `config: invalid` still finishes, then fails the job loudly
+with the variable names, so a missing production secret cannot go unnoticed.
 """
 
 import json
@@ -88,7 +91,7 @@ def remember(value: str) -> None:
     os.replace(temporary, STATE_PATH)
 
 
-def verify_health(sha: str) -> None:
+def verify_health(sha: str) -> dict:
     deadline = time.monotonic() + 120
     while time.monotonic() < deadline:
         try:
@@ -97,11 +100,21 @@ def verify_health(sha: str) -> None:
             with urllib.request.urlopen(request, timeout=15) as response:
                 health = json.load(response)
             if health.get("status") == "ok" and health.get("build_sha") == sha:
-                return
+                return health
         except (OSError, ValueError):
             pass
         time.sleep(5)
     sys.exit(f"devrel.md did not serve the expected healthy revision {sha}")
+
+
+def report_config(health: dict) -> None:
+    if health.get("config") != "invalid":
+        return
+    names = ", ".join(health.get("config_problems") or []) or "unknown"
+    print(f"::error title=Production configuration invalid::{names}")
+    sys.exit(f"{health.get('build_sha', '')[:12]} is live, but these production variables are missing "
+             f"or on a development default: {names}. Set them in OpenShip (README, Configuration) "
+             "and redeploy.")
 
 
 def main() -> None:
@@ -144,9 +157,10 @@ def main() -> None:
         status = unwrap(call("GET", f"/api/deployments/{deployment_id}")).get("status")
         print(f"  status: {status}")
         if status in TERMINAL_OK:
-            verify_health(sha)
+            health = verify_health(sha)
             STATE_PATH.unlink(missing_ok=True)
             print(f"Deployed and health-verified {sha[:12]} on devrel.md")
+            report_config(health)
             return
         if status in TERMINAL_BAD:
             STATE_PATH.unlink(missing_ok=True)
