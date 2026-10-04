@@ -30,7 +30,7 @@ If none of this is available and nobody can answer, don't wait: pick the variant
 
 ## Process
 
-1. **Gather context.** Read DEVREL.md (or its fallback) for the North Star, the ICPs, the `stage` field, and above all the Funnel health table. If no DEVREL.md exists, ask only for: the failing stage or symptom the user already suspects, company size, and the driver behind the plan. Suggest the `devrel-md-init` skill so future runs have this for free.
+1. **Gather context.** Read DEVREL.md (or its fallback) for the North Star, the ICPs, the `stage` field, and above all the Funnel health table. Take `stage` as written: if it is `unknown`, leave it `unknown` and don't derive it from company size, funding or reputation. If no DEVREL.md exists, ask only for: the failing stage or symptom the user already suspects, company size, and the driver behind the plan. Suggest the `devrel-md-init` skill so future runs have this for free.
 2. **Pick the variant and say why.**
    - **Foundation/Growth roadmap**: the team is building the basics and growing steadily, with no urgent need to defend the function's existence.
    - **Justification roadmap**: the team must show measurable business impact to leadership, usually to secure or keep headcount or budget.

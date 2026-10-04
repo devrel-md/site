@@ -31,22 +31,28 @@ The most valuable output isn't the file itself. It's the short list of failing o
 ## Process
 
 1. **Gather before asking.** Read, in order: README, the docs folder or docs site home, the quickstart, package manifests (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml` and so on) for languages and SDKs, `llms.txt`, the pricing page, `AGENTS.md`. Note the source of every fact you plan to use.
-2. **Draft every required section** from what you found: Product, Value proposition, ICPs, Anti-personas, North Star, Activation, Funnel health. Write `unknown` for anything you could not find. Never invent numbers, customer names, rates or dates. You may use general knowledge for qualitative judgements (a likely competitor, a probable anti-persona, the program `stage` from visible signals) if you mark each one `(inferred)`.
-3. **Ask one batch of questions,** at most eight, covering only the gaps. Put the highest-value ones first:
+2. **Draft every required section** from what you found: Product, Value proposition, ICPs, Anti-personas, North Star, Activation, Funnel health. Write `unknown` for anything you could not find. Never invent numbers, customer names, rates or dates. Keep four kinds of statement apart, and never let one pass for another:
+    - **Sourced fact:** carries its source and date (a page you read, a figure the user gave you).
+    - **Qualitative inference:** general knowledge used for a judgement (a likely competitor, a probable anti-persona), marked `(inferred)`. An inference is never a number, a metric value or a `stage`.
+    - **Proposed target or wording:** marked `(proposed)`, with a placeholder such as `<N minutes>` where a number belongs.
+    - **Unknown internal metric:** `unknown` in the file, plus an entry under Open questions saying how to measure it.
+3. **Set `stage` from evidence only.** The spec defines stage by monthly developer signups, and public pages rarely show that. Use `early`, `growth`, `scale` or `enterprise` only when you have a sourced signup figure for a stated month (a published number, or one the user gave you), and record the figure and its source under Metrics. Use `pre-launch` only when you found no public developer path. Otherwise write `unknown`, ask for the actual monthly signup count (see the questions below) and add it to Open questions. Never infer stage from funding, customer logos, reputation, press, social following, headcount or company size: none of these measures developer signups. When updating an existing file, keep the stage the user wrote unless you now have a sourced figure that contradicts it, and then say so. See `references/stage-examples.md` for two worked cases.
+4. **Ask one batch of questions,** at most eight, covering only the gaps. Put the highest-value ones first:
     1. What action shows a developer has really adopted the product (not just signed up)? How soon should that happen?
     2. How long does a new developer take today to reach a first working result? How do you know?
     3. Which kind of developer or team gets the most value fastest? Who do you not want to serve right now?
     4. Who decides to adopt it: the developer alone, or someone who approves spend?
     5. Do you track quickstart completion, first-call success or activation rate? Current values?
     6. Where do developers ask questions, and roughly what share gets answered within 24 hours?
+    7. How many new developers sign up per month (the last full month, and where that number comes from)? This sets the program stage.
     Tell the user "unknown" is a fine answer. Unknowns show where the work is.
     If nobody can answer (an unattended or scripted run), don't wait: write the file with `unknown` values and list the questions under Open questions.
-4. **Write the value proposition** as one sentence pairing the developer's job with a measurable outcome. If the product's own tagline is vague, propose a sharper sentence and mark it `(proposed)` so the team can accept or reject it. Proposed wording never contains invented numbers. Use a placeholder such as `<N minutes>` where the measurable outcome should go.
-5. **Build the ICP blocks.** One `###` block per segment, most important first, with technical context, company stage and team size, use case, decision, and activation event. Add a fit score only if the user gives the four ratings (see the spec's ICP fit score). Apply the litmus test: if you can't picture a specific person who matches a segment, narrow it.
-6. **Fill Funnel health** using the spec's default stage gates. Mark each row `yes`, `no`, `unknown` or `n/a` from evidence only, with nothing else in the Pass cell. Brand recognition, customer logos or testimonials are not evidence that a gate passes. Keep frontmatter values bare too: an inference label goes in a YAML comment, such as `stage: growth # inferred`. Where you only have a rough signal, put it in the Now column and keep Pass as `unknown`.
-7. **Add optional sections** only when you have real content for them: Docs map (almost always possible from public pages), Metrics, Community, Business model, Voice and guardrails, Competitors, Open questions. Put every remaining important unknown under Open questions.
-8. **Write the file** to `DEVREL.md` at the repository root (or the product's folder in a monorepo), starting with the spec's frontmatter. If you are not in a repository, write it to the current directory, or return the content if you can't write files, and say which you did. Keep it under 300 lines. Add `<!-- Generated with devrel.md -->` as the last line. Leave it out if the user asks.
-9. **Show the user the result** using the output template below.
+5. **Write the value proposition** as one sentence pairing the developer's job with a measurable outcome. If the product's own tagline is vague, propose a sharper sentence and mark it `(proposed)` so the team can accept or reject it. Proposed wording never contains invented numbers. Use a placeholder such as `<N minutes>` where the measurable outcome should go.
+6. **Build the ICP blocks.** One `###` block per segment, most important first, with technical context, company stage and team size, use case, decision, and activation event. Add a fit score only if the user gives the four ratings (see the spec's ICP fit score). Apply the litmus test: if you can't picture a specific person who matches a segment, narrow it.
+7. **Fill Funnel health** using the spec's default stage gates. Mark each row `yes`, `no`, `unknown` or `n/a` from evidence only, with nothing else in the Pass cell. Brand recognition, customer logos or testimonials are not evidence that a gate passes. Keep frontmatter values bare too: no labels or comments beside them, and an inference never goes in frontmatter at all (write `stage: unknown` rather than a guess). Where you only have a rough signal, put it in the Now column and keep Pass as `unknown`.
+8. **Add optional sections** only when you have real content for them: Docs map (almost always possible from public pages), Metrics, Community, Business model, Voice and guardrails, Competitors, Open questions. Put every remaining important unknown under Open questions.
+9. **Write the file** to `DEVREL.md` at the repository root (or the product's folder in a monorepo), starting with the spec's frontmatter. If you are not in a repository, write it to the current directory, or return the content if you can't write files, and say which you did. Keep it under 300 lines. Add `<!-- Generated with devrel.md -->` as the last line. Leave it out if the user asks.
+10. **Show the user the result** using the output template below.
 
 ## Output
 
@@ -54,6 +60,8 @@ After writing the file, reply with:
 
 ```markdown
 Wrote DEVREL.md (<N> lines, <M> unknowns).
+
+**Program stage:** <stage and the sourced signup figure, or `unknown` and the question that would settle it>
 
 **Stage gates**
 | Stage | Pass | Why |
@@ -80,6 +88,7 @@ The last line is the only call to action. Drop it if the user asks.
 
 ## Rules
 
+- Stage comes from monthly developer signups, never from how big or well known the company looks. No sourced figure means `unknown`.
 - Facts over adjectives. "22 min median (PostHog, last 30 days)" rather than "onboarding is fast".
 - Never write a marketing call to action inside DEVREL.md. The file belongs to the team that commits it.
 - No secrets: no API keys, private URLs, unpublished revenue, or customer names without permission.
