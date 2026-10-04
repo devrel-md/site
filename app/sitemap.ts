@@ -2,6 +2,10 @@ import type { MetadataRoute } from "next";
 import { env } from "@/lib/env";
 import { listSkillSlugs } from "@/lib/content";
 
+// Rendered per request so every URL follows the runtime SITE_URL. Left static,
+// Next prerenders this at build time, when SITE_URL is not set.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const skillSlugs = await listSkillSlugs();
 
