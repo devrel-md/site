@@ -4,7 +4,11 @@ const queryMock = vi.fn();
 vi.mock("@/lib/db", () => ({ query: (...args: unknown[]) => queryMock(...args) }));
 
 import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
-import { RATE_LIMIT_PER_IP_PER_DAY, RATE_LIMIT_VALIDATE_PER_IP_PER_DAY } from "@/lib/generatorConfig";
+import {
+  RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
+  RATE_LIMIT_PER_IP_PER_DAY,
+  RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
+} from "@/lib/generatorConfig";
 
 describe("checkAndIncrementRateLimit", () => {
   beforeEach(() => {
@@ -36,6 +40,16 @@ describe("checkAndIncrementRateLimit", () => {
     await checkAndIncrementRateLimit("hash1", "validate");
     const [, params] = queryMock.mock.calls[0]!;
     expect(params).toEqual(["hash1", "validate"]);
+  });
+
+  it("gives community signup its own budget under its own kind", async () => {
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY }]);
+    expect((await checkAndIncrementRateLimit("hash1", "community")).allowed).toBe(true);
+    const [, params] = queryMock.mock.calls[0]!;
+    expect(params).toEqual(["hash1", "community"]);
+
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY + 1 }]);
+    expect((await checkAndIncrementRateLimit("hash1", "community")).allowed).toBe(false);
   });
 
   it("defaults to the generate kind when none is given", async () => {

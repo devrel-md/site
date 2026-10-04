@@ -19,6 +19,11 @@ describe("anonymous result", () => {
     expect(html).toContain('id="copy-markdown"');
     expect(html).toContain('href="/r/example.md?download=1"');
     expect(html).toContain('action="/api/community"');
+    // Turnstile widget, and a visible message when JavaScript is off.
+    expect(html).toContain('class="cf-turnstile');
+    expect(html).toContain("https://challenges.cloudflare.com/turnstile/v0/api.js");
+    expect(html).toContain("<noscript>");
+    expect(html).toContain("confirm");
     expect(html).not.toContain("Unlock copy and download");
   });
 

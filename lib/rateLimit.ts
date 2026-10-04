@@ -1,17 +1,23 @@
 import { query } from "@/lib/db";
-import { RATE_LIMIT_PER_IP_PER_DAY, RATE_LIMIT_VALIDATE_PER_IP_PER_DAY } from "@/lib/generatorConfig";
+import {
+  RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
+  RATE_LIMIT_PER_IP_PER_DAY,
+  RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
+} from "@/lib/generatorConfig";
 
-export type RateLimitKind = "generate" | "validate";
+export type RateLimitKind = "generate" | "validate" | "community";
 
 const LIMITS: Record<RateLimitKind, number> = {
   generate: RATE_LIMIT_PER_IP_PER_DAY,
   validate: RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
+  community: RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
 };
 
 /** Atomically increments today's (UTC) request count for a hashed IP and
  * `kind`, and returns whether this request is still within that kind's
- * daily limit. Generate and validate have separate budgets: validating
- * doesn't call a paid model, so it shouldn't share the generator's quota. */
+ * daily limit. Generate, validate and community signup have separate
+ * budgets: validating doesn't call a paid model, so it shouldn't share the
+ * generator's quota, and signups shouldn't eat either. */
 export async function checkAndIncrementRateLimit(
   ipHash: string,
   kind: RateLimitKind = "generate"
