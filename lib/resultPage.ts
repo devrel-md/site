@@ -1,3 +1,4 @@
+import { env } from "@/lib/env";
 import { escapeHtml } from "@/lib/html";
 import { nextStep } from "@/lib/funnelGates";
 import type { FunnelGate } from "@/lib/results";
@@ -113,7 +114,7 @@ export function rawToggleHtml(markdown: string): string {
 export function communityFormHtml(): string {
   return `<div class="callout">
 <h2 id="community-updates">Community updates</h2>
-<p>Want occasional news about DEVREL.md, new skills and ways to contribute? Joining is optional and separate from your file.</p>
+<p>Want occasional news about DEVREL.md, new skills and ways to contribute? Joining is optional and separate from your file. We email you one link to confirm, and nothing is added until you click it.</p>
 <form class="lead-form" method="post" action="/api/community">
 <div>
 <label for="email">Email</label>
@@ -121,10 +122,13 @@ export function communityFormHtml(): string {
 </div>
 <div class="checkbox-row">
 <input id="communityConsent" name="communityConsent" type="checkbox" required>
-<label for="communityConsent">Yes, email me occasional DEVREL.md community updates. I can unsubscribe any time.</label>
+<label for="communityConsent">Yes, email me occasional DEVREL.md community updates. I will confirm by email and can unsubscribe any time.</label>
 </div>
+<div class="cf-turnstile turnstile-widget" data-sitekey="${escapeHtml(env.turnstileSiteKey)}"></div>
+<noscript><p class="form-error">The human check needs JavaScript. Enable it to join, or email hello@devrel.md.</p></noscript>
 <button class="primary" type="submit">Join community updates</button>
 </form>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </div>`;
 }
 

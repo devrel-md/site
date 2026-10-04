@@ -62,4 +62,13 @@ describe("unsubscribeByToken", () => {
     expect(folkUnsubscribeMock).toHaveBeenCalledWith("folk-123");
     expect(queryMock).toHaveBeenCalledTimes(2);
   });
+
+  it("lets a pending, never-confirmed signup unsubscribe using the link in the confirmation email", async () => {
+    // Pending rows have the same unsubscribe token column as confirmed ones.
+    queryMock.mockResolvedValueOnce([{ email: "pending@example.com", unsubscribed_at: null, folk_person_id: null }]);
+    const result = await unsubscribeByToken("pending-token");
+    expect(result).toEqual({ found: true, alreadyUnsubscribed: false });
+    expect(String(queryMock.mock.calls[1]![0])).toMatch(/update community_subscribers set unsubscribed_at/i);
+    expect(folkUnsubscribeMock).not.toHaveBeenCalled();
+  });
 });

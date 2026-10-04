@@ -38,3 +38,7 @@ export const RATE_LIMIT_PER_IP_PER_DAY = 5;
 // The validator calls no paid model, just the local quality gate, so it gets
 // a much more generous budget than the generator.
 export const RATE_LIMIT_VALIDATE_PER_IP_PER_DAY = 30;
+
+// Community signup sends an email to an address the visitor typed in, so it
+// gets its own small per-IP budget. Counted only after Turnstile passes.
+export const RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY = 5;
