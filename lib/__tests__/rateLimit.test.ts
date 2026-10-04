@@ -7,8 +7,12 @@ import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
 import {
   RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
   RATE_LIMIT_PER_IP_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY,
   RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
 } from "@/lib/generatorConfig";
+import { hashIp, UNKNOWN_IP } from "@/lib/hash";
 
 describe("checkAndIncrementRateLimit", () => {
   beforeEach(() => {
@@ -75,5 +79,47 @@ describe("isRateLimited", () => {
     expect(await isRateLimited("hash1", "generate")).toBe(true);
     const [sql] = queryMock.mock.calls[0]!;
     expect(String(sql).trim().toLowerCase().startsWith("select")).toBe(true);
+  });
+});
+
+describe("requests with no trustworthy address", () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+  });
+
+  const unknownHash = hashIp(UNKNOWN_IP);
+
+  it("share a strict generate bucket, smaller than a known address gets", async () => {
+    expect(RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY).toBeLessThan(RATE_LIMIT_PER_IP_PER_DAY);
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY }]);
+    expect((await checkAndIncrementRateLimit(unknownHash, "generate")).allowed).toBe(true);
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY + 1 }]);
+    expect((await checkAndIncrementRateLimit(unknownHash, "generate")).allowed).toBe(false);
+    // The same count is fine for a known address.
+    expect((await checkAndIncrementRateLimit("hash1", "generate")).allowed).toBe(true);
+  });
+
+  it("share a strict validate bucket, but not a zero one", async () => {
+    expect(RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY).toBeGreaterThan(0);
+    expect(RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY).toBeLessThan(RATE_LIMIT_VALIDATE_PER_IP_PER_DAY);
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY + 1 }]);
+    expect((await checkAndIncrementRateLimit(unknownHash, "validate")).allowed).toBe(false);
+    expect((await checkAndIncrementRateLimit("hash1", "validate")).allowed).toBe(true);
+  });
+
+  it("share a strict community signup bucket, smaller than a known address gets", async () => {
+    expect(RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY).toBeGreaterThan(0);
+    expect(RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY).toBeLessThan(RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY);
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY }]);
+    expect((await checkAndIncrementRateLimit(unknownHash, "community")).allowed).toBe(true);
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY + 1 }]);
+    expect((await checkAndIncrementRateLimit(unknownHash, "community")).allowed).toBe(false);
+    expect((await checkAndIncrementRateLimit("hash1", "community")).allowed).toBe(true);
+  });
+
+  it("are limited up front by isRateLimited at the strict limit", async () => {
+    queryMock.mockResolvedValue([{ count: RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY }]);
+    expect(await isRateLimited(unknownHash, "generate")).toBe(true);
+    expect(await isRateLimited("hash1", "generate")).toBe(false);
   });
 });

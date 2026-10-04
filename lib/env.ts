@@ -30,6 +30,7 @@ export const env = {
     process.env.TURNSTILE_SECRET_KEY ??
     "1x0000000000000000000000000000000AA",
   ipHashSalt: process.env.IP_HASH_SALT ?? "local-dev-salt",
+  trustedProxyHops: num(process.env.TRUSTED_PROXY_HOPS, 1),
   cronSecret: process.env.CRON_SECRET ?? "local-dev-cron-secret",
   dailySpendCapUsd: num(process.env.DAILY_SPEND_CAP_USD, 2.0),
   seriesEnabled: bool(process.env.SERIES_ENABLED, false),

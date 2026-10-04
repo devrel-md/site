@@ -42,3 +42,10 @@ export const RATE_LIMIT_VALIDATE_PER_IP_PER_DAY = 30;
 // Community signup sends an email to an address the visitor typed in, so it
 // gets its own small per-IP budget. Counted only after Turnstile passes.
 export const RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY = 5;
+
+// Requests with no trustworthy address (see clientIp) all share one bucket per
+// kind, so it is small: it must not be a way to burn the paid budget or the
+// whole day's allowance for everyone with a known address.
+export const RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY = 2;
+export const RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY = 10;
+export const RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY = 2;
