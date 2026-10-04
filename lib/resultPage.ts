@@ -32,34 +32,48 @@ function saysNothing(now: string): boolean {
   return !now.trim() || /^unknown\.?$/i.test(now.trim()) || /^not stated in public docs\.?$/i.test(now.trim());
 }
 
-function headline(gates: FunnelGate[]): string {
+/** Where the table came from. A pasted file was never compared with any pages. */
+export type GatesOrigin = "generated" | "pasted";
+
+// What the check behind a generated file does and does not establish.
+const GENERATED_NOTE =
+  "We check that every number in the file appears in the pages we read, next to the metric it describes. " +
+  "That is number matching, not fact checking: a page can be wrong or out of date, and we can't see your " +
+  "internal metrics.";
+const PASTED_NOTE =
+  "This summary only reads the table in your file. Nothing here was compared with your pages, so it " +
+  "shows what the file says, not whether it is true.";
+
+function headline(gates: FunnelGate[], origin: GatesOrigin): string {
   const judged = gates.filter((g) => g.pass === "yes" || g.pass === "no").length;
   const needData = gates.filter((g) => g.pass === "unknown").length;
+  const read = origin === "generated" ? "what we read" : "this file";
   if (needData === 0) {
-    return `All ${gates.length} stage gates could be judged from what we read.`;
+    return `All ${gates.length} stage gates could be judged from ${read}.`;
   }
   if (judged === 0) {
     return (
-      `We read your public pages and wrote down what they say. None of the ${gates.length} stage gates can be judged ` +
+      `${origin === "generated" ? "We read your public pages and wrote down what they say. " : ""}` +
+      `None of the ${gates.length} stage gates can be judged ` +
       "from outside, and that's normal: each one needs a number only your team has, such as time to first call " +
       "or activation rate. The file is a starting point, not a verdict."
     );
   }
   return (
-    `${judged} of ${gates.length} stage gates could be judged from your public pages. ` +
+    `${judged} of ${gates.length} stage gates could be judged from ${origin === "generated" ? "your public pages" : "this file"}. ` +
     `The other ${needData} need a number only your team has.`
   );
 }
 
-export function stageGatesHtml(gates: FunnelGate[]): string {
+export function stageGatesHtml(gates: FunnelGate[], origin: GatesOrigin = "generated"): string {
   if (gates.length === 0) return "";
 
   const cards = gates
     .map((g) => {
       const status = STATUS[g.pass];
       const found = saysNothing(g.now)
-        ? "<p class=\"gate-found gate-empty\">Your public pages don't say.</p>"
-        : `<p class="gate-found"><strong>What we found:</strong> ${escapeHtml(g.now)}</p>`;
+        ? `<p class="gate-found gate-empty">${origin === "generated" ? "Your public pages don't say." : "This file doesn't say."}</p>`
+        : `<p class="gate-found"><strong>${origin === "generated" ? "What we found" : "What the file says"}:</strong> ${escapeHtml(g.now)}</p>`;
       const measure =
         g.pass === "unknown" && MEASURE_FOR_STAGE[g.stage]
           ? `<p class="gate-measure"><strong>To judge it, measure</strong> ${escapeHtml(MEASURE_FOR_STAGE[g.stage]!)}.</p>`
@@ -98,7 +112,8 @@ ${measure}
 
   return `<div class="callout">
 <h2 id="stage-gates">Stage gates</h2>
-<p class="gates-headline">${escapeHtml(headline(gates))}</p>
+<p class="gates-headline">${escapeHtml(headline(gates, origin))}</p>
+<p class="gates-note">${escapeHtml(origin === "generated" ? GENERATED_NOTE : PASTED_NOTE)}</p>
 <div class="gate-cards">${cards}</div>
 ${next}
 </div>`;

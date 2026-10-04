@@ -10,7 +10,7 @@ export function buildOpenApiDoc(): object {
       title: "devrel.md API",
       version: "0.1.0",
       description:
-        "The generator drafts a DEVREL.md from a product's public docs or home page, gated by a Cloudflare Turnstile token. The validator checks any DEVREL.md against the spec's quality gate; it needs no token.",
+        "The generator drafts a DEVREL.md from a product's public docs or home page, gated by a Cloudflare Turnstile token. The validator checks the structure of any DEVREL.md against the spec (format only, not whether its facts are true); it needs no token.",
       contact: { url: `${env.siteUrl}/api` },
     },
     servers: [{ url: env.siteUrl }],
@@ -48,7 +48,7 @@ export function buildOpenApiDoc(): object {
       "/api/validate": {
         post: {
           summary: "Validate a DEVREL.md",
-          description: "The same quality gate the generator uses. No authentication, rate limited by IP.",
+          description: "The generator's structural check: format only, not whether the content is true. No authentication, rate limited by IP.",
           security: [],
           requestBody: {
             required: true,

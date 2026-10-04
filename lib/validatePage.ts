@@ -14,7 +14,7 @@ export function validateFormHtml(previousMarkdown = ""): string {
 
 export function validateResultsHtml(result: ValidationResult): string {
   const summary = result.valid
-    ? `<p class="pass-yes"><strong>Pass.</strong> This file meets every check the generator's quality gate applies.</p>`
+    ? `<p class="pass-yes"><strong>Pass.</strong> The structure is valid: frontmatter, required sections, a well-formed Funnel health table and a sensible length. This checks the format only. It has no source pages to compare against, so it cannot tell you whether the content is true.</p>`
     : `<p class="pass-no"><strong>${result.problems.length} ${result.problems.length === 1 ? "problem" : "problems"} found.</strong></p>`;
 
   const problemList = result.valid
@@ -27,7 +27,7 @@ ${result.problems
   .join("\n")}
 </ul>`;
 
-  const gates = result.gates.length > 0 ? stageGatesHtml(result.gates) : "";
+  const gates = result.gates.length > 0 ? stageGatesHtml(result.gates, "pasted") : "";
 
   return `<div class="callout" id="results">
 <h2 id="results-heading">Results</h2>

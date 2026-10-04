@@ -4,7 +4,7 @@ import { runValidation } from "@/lib/runValidation";
 
 const MAX_BYTES = 100_000;
 
-/** Paste a DEVREL.md, get the same quality check the generator uses. Accepts
+/** Paste a DEVREL.md, get the generator's structural check (format only, not facts). Accepts
  * `text/markdown` (or any non-JSON content type: the raw body is read as
  * text) or JSON `{ "markdown": "..." }`. No login, no storage: nothing here
  * is written to the database except the rate-limit counter. */
