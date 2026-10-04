@@ -214,4 +214,33 @@ describe("generateDevrelMd (fallback order and circuit breaker)", () => {
 
     expect(outcome).toMatchObject({ status: "no_sources", reason: "blocked_by_robots" });
   });
+
+  it("hands the route the provenance to store: pages read, indexability and the company's own file", async () => {
+    discoverPagesMock.mockResolvedValue(
+      Object.assign([...ENOUGH_SOURCE, ...ENOUGH_SOURCE], { ownDevrelUrl: "https://acme.dev/DEVREL.md" })
+    );
+    streamCompletionMock.mockResolvedValueOnce(success(MODEL_CHAIN.free, VALID_MARKDOWN));
+    const persistResult = vi.fn(async () => "abc");
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    await generateDevrelMd({ inputUrl: "https://acme.dev", persistResult });
+
+    expect(persistResult).toHaveBeenCalledWith(expect.any(String), MODEL_CHAIN.free, 0, {
+      pagesRead: 2,
+      indexable: true,
+      ownDevrelUrl: "https://acme.dev/DEVREL.md",
+    });
+  });
+
+  it("marks a clean file with no sourced fact as not indexable", async () => {
+    const allUnknown = VALID_MARKDOWN.replace(/\| n \| yes \|/g, "| unknown | unknown |");
+    streamCompletionMock.mockResolvedValueOnce(success(MODEL_CHAIN.free, allUnknown));
+    const persistResult = vi.fn<(...args: unknown[]) => Promise<string>>(async () => "abc");
+    const { generateDevrelMd } = await import("@/lib/generate");
+
+    await generateDevrelMd({ inputUrl: "https://acme.dev", persistResult });
+
+    expect(persistResult).toHaveBeenCalledTimes(1);
+    expect(persistResult.mock.calls[0]![3]).toMatchObject({ indexable: false, ownDevrelUrl: null });
+  });
 });

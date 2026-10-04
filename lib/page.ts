@@ -15,6 +15,10 @@ export interface PageOptions {
   bodyClassName?: string;
   /** Add "Copy" buttons to code blocks (default true). Result pages have a dedicated full-file button. */
   copyButtons?: boolean;
+  /** Canonical URL when it is not the page's own address (e.g. a company's own DEVREL.md). */
+  canonicalUrl?: string;
+  /** Adds `<meta name="robots" content="noindex">`. */
+  noindex?: boolean;
 }
 
 // Progressive enhancement: code blocks are fully readable and selectable
@@ -68,8 +72,8 @@ export function copyScript(): string {
 }
 
 export function renderPage(options: PageOptions): string {
-  const { title, description, path, bodyHtml, preContent = "", postContent = "", bodyClassName, copyButtons = true } = options;
-  const canonical = `${env.siteUrl}${path}`;
+  const { title, description, path, bodyHtml, preContent = "", postContent = "", bodyClassName, copyButtons = true, canonicalUrl, noindex = false } = options;
+  const canonical = canonicalUrl ?? `${env.siteUrl}${path}`;
   const bodyAttr = bodyClassName ? ` class="${escapeHtml(bodyClassName)}"` : "";
 
   return `<!doctype html>
@@ -80,7 +84,7 @@ export function renderPage(options: PageOptions): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}">
-<link rel="canonical" href="${canonical}">
+${noindex ? '<meta name="robots" content="noindex">\n' : ""}<link rel="canonical" href="${escapeHtml(canonical)}">
 ${headMetaHtml({ siteUrl: env.siteUrl, title, description, canonical })}
 <link rel="stylesheet" href="/styles.css">
 <meta name="color-scheme" content="light dark">

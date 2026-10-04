@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "migrate": "tsx db/migrate.ts",
     "db:reset": "tsx db/reset.ts",
-    "delete-lead": "tsx scripts/delete-lead.ts"
+    "delete-lead": "tsx scripts/delete-lead.ts",
+    "exclude-host": "tsx scripts/exclude-host.ts"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",

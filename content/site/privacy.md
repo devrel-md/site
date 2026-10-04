@@ -8,6 +8,12 @@ This is a short, plain notice, not a legal document dressed up as one.
 - **Community updates.** You can read, copy and download a result without an email address. If you separately choose to join community updates, we store your email address, when you asked, when you confirmed, a one-off confirmation token, an unsubscribe token and when you unsubscribed. The form asks for no company, role or team size. It uses a Cloudflare Turnstile check, and your IP address is stored only as the same one-way hash, to enforce a daily limit on signups.
 - **Tracked links.** When you follow a `/go/...` link (for example, to book a review), we log the slug, the campaign, a timestamp and the hashed IP, so we know which content leads to a conversation.
 
+## Generated results and search engines
+
+A result page is an automated draft built only from the public pages of the site you gave us. Every page says when it was generated, from how many pages, and that it is a starting point, not an audit. A result is open to search engines only when the draft passed our checks and states at least one fact that came from those pages; every other result is sent with `noindex`. If a company publishes its own DEVREL.md at `/DEVREL.md` or `/.well-known/DEVREL.md` and it validates, the result page points to it as the canonical version.
+
+A site owner can opt out by disallowing `devrel.md-generator` in their robots.txt. We then refuse new runs for that site, mark its existing results as not to be indexed, and do not serve a cached copy. Results are kept until someone asks for removal; we do not delete them automatically.
+
 ## Why
 
 To run the generator and, only if you ask and then confirm, send occasional DEVREL.md community updates. A community signup is not a request for sales contact. Nothing here is sold or shared with anyone outside DevRel Bridge, other than the processors below.
@@ -25,7 +31,7 @@ Submitting the form does not subscribe you. We send one email with a confirmatio
 
 ## How to delete your data
 
-Email hello@devrel.md to request deletion of your community record or a generated result. The confirmation email also gives you an immediate unsubscribe link.
+Email hello@devrel.md to request deletion of your community record or a generated result. If you speak for the company a result describes, say so and we will take down every result for your site and stop anyone generating a new one, usually within a working day. The confirmation email also gives you an immediate unsubscribe link.
 
 ## Unsubscribe
 

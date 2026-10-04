@@ -5,6 +5,8 @@ import { normaliseUrl, findCachedResult, createResult } from "@/lib/results";
 import { extractFunnelGates } from "@/lib/funnelGates";
 import { generateDevrelMd, type NoSourcesReason } from "@/lib/generate";
 import { SKILLS_INSTALL_NOTE } from "@/lib/skillsPage";
+import { hostKey } from "@/lib/resultPolicy";
+import { isHostExcluded, applyRobotsRefusal } from "@/lib/exclusions";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +82,18 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // A removal request blocks the host outright: no cache, no new run.
+  if (await isHostExcluded(hostKey(rawUrl))) {
+    return Response.json(
+      {
+        error:
+          "The owner of that site has asked us not to generate a file for it. " +
+          "You can still create one with your own agent: read https://devrel.md and create a DEVREL.md for the repo.",
+      },
+      { status: 403 }
+    );
+  }
+
   const normalised = normaliseUrl(rawUrl);
   const cached = await findCachedResult(normalised);
   if (cached) {
@@ -126,7 +140,7 @@ export async function POST(request: Request): Promise<Response> {
           beforeFirstModelCall: async () => {
             await checkAndIncrementRateLimit(ipHash, "generate");
           },
-          persistResult: async (markdown, model, costUsd) => {
+          persistResult: async (markdown, model, costUsd, provenance) => {
             const result = await createResult({
               url: rawUrl,
               normalisedUrl: normalised,
@@ -134,6 +148,7 @@ export async function POST(request: Request): Promise<Response> {
               gates: extractFunnelGates(markdown),
               model,
               costUsd,
+              ...provenance,
             });
             return result.id;
           },
@@ -152,6 +167,10 @@ export async function POST(request: Request): Promise<Response> {
         }
 
         if (outcome.status === "no_sources") {
+          if (outcome.reason === "blocked_by_robots") {
+            // The site has told our reader to stay out: honour it for results we already hold.
+            await applyRobotsRefusal(rawUrl).catch((err) => console.error("robots exclusion failed", err));
+          }
           send(
             sseEvent("error", {
               reason: "no_sources",
