@@ -132,7 +132,7 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 Merging to `main` deploys to production automatically, but only after CI passes. Two workflows are involved:
 
 - `.github/workflows/ci.yml` runs on every pull request and on every push to `main`: `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`, on a GitHub-hosted runner with no secrets and no database. Its job is named `ci`, and that is the check a pull request must pass.
-- `.github/workflows/deploy.yml` starts when CI finishes on `main`, and only if it succeeded for a push. It deploys that same commit. It runs on a self-hosted runner that lives on the OpenShip host, the only place OpenShip's API can be reached from. Deploys are serialised: a second one waits for the first rather than overlapping it. If CI fails on `main`, nothing deploys.
+- `.github/workflows/deploy.yml` starts when CI finishes on `main`, and only if it succeeded for a push. It deploys that same commit. It runs on a self-hosted runner that lives on the OpenShip host, the only place OpenShip's API can be reached from. Deploys are serialised: a second one waits for the first rather than overlapping it. A deploy run first checks that its commit is still the tip of `main` and, if `main` has moved on, deploys nothing (an annotation names the newer commit, whose own run deploys it), so CI runs that finish out of order cannot put an older commit over a newer one. If CI fails on `main`, nothing deploys.
 
 For each deploy, in order:
 
@@ -161,5 +161,5 @@ The production database is backed up nightly, encrypted, to object storage. `ops
 The deploy workflow always deploys a single commit. Its manual trigger (`workflow_dispatch`) takes no inputs and only runs on `main`, so running it by hand redeploys the current head of `main`, not an earlier commit. It skips CI, so use it only for a commit that has already passed.
 
 - **Normal route:** open a pull request that reverts the bad change (`git revert`), merge it once `ci` passes, and let the usual deploy run. Then confirm `/healthz` reports the revert commit.
-- **Faster route, not yet exercised:** in the Actions tab, re-run the `Deploy` run for the last good commit on `main`. A re-run keeps the commit of the original run, so the workflow should migrate, deploy and health-check that commit again. GitHub only allows re-running a run for 30 days after it started.
+- **Not an option:** re-running the `Deploy` run for an earlier commit. A re-run keeps the commit of the original run, so the head-of-`main` guard skips it and deploys nothing.
 - **The database is not rolled back.** Migrations only go forward, and additive migrations leave older code working against the newer schema. If data itself is damaged, restore from a backup as described in `ops/backup/README.md`.
