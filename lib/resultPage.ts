@@ -132,15 +132,10 @@ export function communityFormHtml(): string {
 </div>`;
 }
 
-export function fileActionsHtml(resultId: string): string {
-  return `<div class="callout">
-<h2 id="get-the-file">Copy and download</h2>
-<p>Your file is free to read, copy and download. No email is needed.</p>
-<button class="primary" type="button" id="copy-markdown" data-target="raw-markdown">Copy Markdown</button>
-<a class="primary" style="display:inline-block;margin-left:0.5rem;text-decoration:none" href="/r/${escapeHtml(resultId)}.md?download=1" download="DEVREL.md">Download DEVREL.md</a>
-</div>
-<script>
-(function(){
+// The copy-button handler for the raw Markdown on result pages. A function (not an inline literal) so
+// lib/csp.ts can hash exactly the text that is served.
+export function resultCopyScript(): string {
+  return `(function(){
   var btn = document.getElementById('copy-markdown');
   if (!btn) return;
   btn.addEventListener('click', function () {
@@ -165,6 +160,15 @@ export function fileActionsHtml(resultId: string): string {
       navigator.clipboard.writeText(target.textContent || '').then(copied, fallback);
     } else fallback();
   });
-})();
-</script>`;
+})();`;
+}
+
+export function fileActionsHtml(resultId: string): string {
+  return `<div class="callout">
+<h2 id="get-the-file">Copy and download</h2>
+<p>Your file is free to read, copy and download. No email is needed.</p>
+<button class="primary" type="button" id="copy-markdown" data-target="raw-markdown">Copy Markdown</button>
+<a class="primary" style="display:inline-block;margin-left:0.5rem;text-decoration:none" href="/r/${escapeHtml(resultId)}.md?download=1" download="DEVREL.md">Download DEVREL.md</a>
+</div>
+<script>${resultCopyScript()}</script>`;
 }
