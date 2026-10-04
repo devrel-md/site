@@ -74,6 +74,15 @@ A valid file (this is the real response for the [full example](/example)) return
 
 Commit `DEVREL.md` next to `README.md` and `AGENTS.md`. From then on, any agent that reads your repo starts from the same facts, and the [free skills](/skills) read it before they do anything. A good first one is `quickstart-friction-check`, which walks your own quickstart the way a new developer would.
 
+## Testing safely
+
+There is no separate sandbox, test mode or staging environment: the generator you try is the same one everyone uses. You can still experiment without cost or risk.
+
+- **Validate first.** The [validator](/validate) and `POST /api/validate` call no paid model and store nothing, so they are the safe way to check a file as often as you like. Each visitor gets 30 checks a day.
+- **Repeat runs are free.** The generator caches each URL for 24 hours, so generating the same URL again returns the cached result instead of running the model again.
+- **Daily limits.** Each visitor gets five generations a day, counted per hashed IP address. A cached result does not use up a generation.
+- **Self-hosted copy.** Cloudflare's documented always-pass Turnstile test keys work as a test key for your own copy of this app. See [Testing safely in the API docs](/api) for the details.
+
 ## Next
 
 - [Read the full specification](/spec)
