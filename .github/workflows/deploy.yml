@@ -1,7 +1,12 @@
 name: Deploy
 
+# Deploys only follow a green CI run. The CI workflow runs on every push to main; when it
+# finishes, this workflow starts for that same commit if, and only if, it succeeded.
+# workflow_dispatch stays for manual redeploys of the current head of main.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -14,14 +19,25 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    # For workflow_run, github.ref and github.sha point at the default branch head, not at the
+    # commit CI ran on, so every use below takes the SHA from the CI run instead.
+    if: >-
+      github.ref == 'refs/heads/main' && (
+        github.event_name == 'workflow_dispatch' || (
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main'
+        )
+      )
     # The runner lives on the OpenShip box, the only place its API is reachable from.
     runs-on: [self-hosted, openship, devrelmd]
     timeout-minutes: 25
+    env:
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.DEPLOY_SHA }}
           persist-credentials: false
           sparse-checkout: |
             package.json
@@ -44,5 +60,5 @@ jobs:
           node db/migrate.ts
       - name: Deploy and verify health
         env:
-          SHA: ${{ github.sha }}
+          SHA: ${{ env.DEPLOY_SHA }}
         run: python3 scripts/openship-deploy.py
