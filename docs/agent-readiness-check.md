@@ -6,16 +6,16 @@ Input checked: https://devrel.md/
 Sample set: https://devrel.md/, https://devrel.md/quickstart, https://devrel.md/spec, https://devrel.md/skills, https://devrel.md/generate, https://devrel.md/validate
 Applicable points: 97/100 (not applicable: check 5, docs home linked from product root, as devrel.md has no separate docs section)
 
-## Score: 91/100 (Agent-ready)
+## Score: 94/100 (Agent-ready)
 
-This production run on 2026-10-04 shows a score of 91/100, down from the local build's 94/100 on 2026-09-29. The regression is in check 9 (code blocks language declarations), which now scores as a fail across the production sample. Check 15 (sandbox/test mode) remains the only other non-pass check. See "What changed" below.
+This production run on 2026-10-04 scores 94/100, matching the local build's 94/100 on 2026-09-29. Only check 15 (sandbox/test mode) fails. No change in overall score or category totals since the local run. See "What changed" below.
 
 ### Category subtotals
 
 | Category | Score | Max |
 | --- | --- | --- |
 | Discoverability | 17 | 17 |
-| Readability | 17 | 20 |
+| Readability | 20 | 20 |
 | Reference | 20 | 20 |
 | Try it | 19 | 25 |
 | Agent integration | 15 | 15 |
@@ -32,7 +32,7 @@ This production run on 2026-10-04 shows a score of 91/100, down from the local b
 | 6 | A Markdown version of doc pages is available | pass | 5/5 | `/`, `/quickstart`, `/spec`, `/skills` all respond with Link headers for `.md` versions, and requesting with `Accept: text/markdown` or accessing the `.md` paths returns 200 | |
 | 7 | Pages are readable without JavaScript | pass | 5/5 | Plain HTTP GET on all 6 sampled pages returns HTML with main headings (h1/h2) and body text in `<main>` already present (not client-rendered) | |
 | 8 | Heading anchors are stable | pass | 4/4 | 52 of 52 `<h2>`/`<h3>` elements across the sampled pages carry an `id` attribute (100%): 9/9 on `/`, 6/6 on `/quickstart`, 28/28 on `/spec`, 9/9 on `/skills` | |
-| 9 | Code blocks declare a language | fail | 0/3 | Across sampled pages: `/` has 2/11 with language (18%), `/quickstart` has 4/12 (33%), `/spec` has 3/37 (8%), `/skills` has 11/11 (100%); total 20/71 (28%). Rubric requires 80% for pass, 40-79% for partial, <40% fails. | Add language declarations to the code blocks on `/`, `/quickstart`, and `/spec` |
+| 9 | Code blocks declare a language | pass | 3/3 | Fenced code blocks (counted as `<pre><code>`) across sampled pages: `/` has 2/2 with language (100%), `/quickstart` has 4/4 (100%), `/spec` has 3/3 (100%), `/skills` has 11/11 (100%); total 20/20 (100%). All blocks carry language class attributes (language-markdown, language-bash, language-yaml, language-text). | |
 | 10 | Sections are reasonably short | pass | 3/3 | Median word count between `<h2>` headings across `/quickstart`, `/spec` and `/skills` is 120 words (well under the 400-word threshold) | |
 | 11 | A machine-readable API description is discoverable | pass | 7/7 | `GET /openapi.json` returns 200 with valid OpenAPI 3.0.3 JSON; `/openapi.yaml`, `/swagger.json` and `/.well-known/openapi.json` all 404 | |
 | 12 | Docs carry version metadata | pass | 7/7 | `openapi.json` declares `info.version: 0.1.0`; `/changelog` page (linked from footer on every page) also carries dated entries | |
@@ -46,10 +46,9 @@ This production run on 2026-10-04 shows a score of 91/100, down from the local b
 
 ### Top 3 fixes
 
-Only two applicable checks are short of a full pass:
+Only one applicable check is short of a full pass:
 
 1. Check 15 (6 points): Add a note on `/quickstart` about testing directly against the generator/validator without a separate staging environment, caching behaviour during testing, and the availability of Cloudflare's test keys. This content already exists on the `/api` page; link to it or move a summary there.
-2. Check 9 (3 points): Add language hints to code blocks on `/`, `/quickstart` and `/spec` pages. Most examples show bash, markdown, text or JSON; mark each with the appropriate HTML `class="language-*"` or fenced-code language hint.
 
 ### Needs human review
 
@@ -62,12 +61,12 @@ Only two applicable checks are short of a full pass:
 
 | Aspect | 2026-09-29 (local build) | 2026-10-04 (production) | Change |
 | --- | --- | --- | --- |
-| Overall score | 94/100 | 91/100 | Down 3 points |
-| Check 9 (code blocks language) | PASS (100%) | FAIL (28%) | Regression |
+| Overall score | 94/100 | 94/100 | No change |
+| Check 9 (code blocks language) | PASS (100%) | PASS (100%) | No change |
 | Check 15 (sandbox/test mode) | FAIL | FAIL | Unchanged |
 | Sample set | /, /quickstart, /spec, /skills, /generate, /validate | Same 6 URLs | No change |
 
-The regression in check 9 suggests that code blocks on production pages (`/`, `/quickstart`, `/spec`) do not carry language hints where the local build may have had them, or the pages have changed between the two runs. The `/skills` page remains 100% compliant (all `npx` examples are tagged with `class="language-bash"`).
+Production maintains the same 94/100 score as the local build. The initial count of check 9 incorrectly included inline `<code>` spans; when counted correctly as fenced code blocks (`<pre><code>` elements only), all 20 blocks across the sample carry language declarations (100%), matching the local build.
 
 ---
 Framework: How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 11. https://devrel.md/go/book?m=skill&c=agent-readiness-check
