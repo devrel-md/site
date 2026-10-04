@@ -4,6 +4,7 @@ description: Use when someone asks to check, review, or audit a quickstart or ge
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Walks your quickstart like a new developer and rates every step"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 1, 2, 4, App F"
   homepage: https://devrel.md
 ---

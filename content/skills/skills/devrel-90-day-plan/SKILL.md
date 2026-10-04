@@ -4,6 +4,7 @@ description: Use when someone asks for a 90 day plan, a devrel roadmap, help wit
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Plans your next 90 days week by week, with exit criteria, to grow or to prove DevRel's value"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 9, App A, App G"
   homepage: https://devrel.md
 ---

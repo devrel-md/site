@@ -5,6 +5,7 @@ license: MIT
 metadata:
   version: 0.1.0
   rubric: 0.1.0
+  summary: "Scores how well AI agents can discover, read and use your docs"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 4, 11, App E"
   homepage: https://devrel.md
 ---

@@ -4,6 +4,7 @@ description: Use when someone wants a full-funnel view of their developer progra
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Maps your programs onto the five funnel stages and tells you which stage to fix first"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 1, 2, App F"
   homepage: https://devrel.md
 ---

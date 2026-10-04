@@ -5,6 +5,7 @@ license: MIT
 metadata:
   version: 0.1.0
   spec: devrel.md/0.1
+  summary: "Writes your DEVREL.md and shows which stage gates fail"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 1, 2, 8, App A.5, App F"
   homepage: https://devrel.md
 ---

@@ -4,6 +4,7 @@ description: Use when someone wants a DevRel measurement plan or is questioning 
 license: MIT
 metadata:
   version: 0.1.0
+  summary: "Swaps vanity metrics for leading and lagging pairs, specs a dashboard and the events behind it"
   source: "How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 8, App F, App I"
   homepage: https://devrel.md
 ---
