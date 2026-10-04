@@ -20,6 +20,7 @@ Paste that into Claude Code, Cursor, Codex or any agent that can fetch a URL. Th
 - [A blank template](TEMPLATE.md)
 - [Frontmatter JSON Schema](schema/frontmatter.schema.json)
 - [Free skills that read DEVREL.md](https://github.com/devrel-md/skills)
+- [Contributing](CONTRIBUTING.md)
 
 ## Why
 
@@ -27,7 +28,7 @@ Every agent writing a quickstart, a launch post or a docs page starts by asking 
 
 ## Contributing
 
-Open an issue before a pull request. Changes to required sections need a migration note. See [Versioning](SPEC.md#versioning).
+Small corrections can go straight to a pull request. For anything bigger, open an issue first. Changes to required sections need a migration note. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report a problem, suggest a pattern, improve examples, propose a skill and submit a pull request, and for who reviews and decides. See also [Versioning](SPEC.md#versioning).
 
 ## Credits
 

@@ -65,4 +65,4 @@ They don't send data anywhere, don't need an account or an email, and never log 
 
 Frameworks from [*How to Build Developer Ecosystems*](https://devrel.md/go/book?m=github&c=skills-readme) by Amir Shevat and Marcos Placona. Maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). If you want a team to find and fix where your developer journey breaks, that's what we do.
 
-Contributions welcome: every new skill must be based on a named chapter of the book. MIT licensed.
+Contributions welcome: every new skill must be based on a named chapter of the book, or clearly marked as a community pattern with its own source. Small corrections can go straight to a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed.
