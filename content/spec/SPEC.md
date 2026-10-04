@@ -41,8 +41,8 @@ If none exists, a tool may fall back to `.agents/product-marketing-context.md` f
 
 - **Facts over adjectives.** "Median time to first call: 14 minutes (PostHog, Sep 2026)" is useful. "Onboarding is fast" is not.
 - **Unknown is a valid answer.** A file full of honest `unknown` values is better than one full of guesses. The unknowns are where the work is.
-- **Label what you inferred.** Facts carry their source. A reasonable qualitative inference carries `(inferred)`, and proposed wording carries `(proposed)`. Proposed wording never contains invented numbers: leave a placeholder such as `<N minutes>` for the team to fill.
-- **Keep machine-read values bare.** Frontmatter values and the `Pass` column of Funnel health hold only the allowed values. Put an inference label in a YAML comment (`stage: growth # inferred`) or in the Now column, never next to the value.
+- **Label what you inferred.** Facts carry their source. A reasonable qualitative inference carries `(inferred)` in the body text, and proposed wording carries `(proposed)`. For example, in the ICPs section: "Technical context: TypeScript and Postgres (inferred from the README)". Proposed wording never contains invented numbers: leave a placeholder such as `<N minutes>` for the team to fill.
+- **Keep machine-read values bare.** Frontmatter values and the `Pass` column of Funnel health hold only the allowed values, with no label or comment beside them. Put an inference label in body text or in the Now column. `stage` is never inferred: it is `unknown` unless a monthly developer signup figure has a source (`pre-launch` is the one exception, when there is no public developer path yet). Record the figure and its source in the body, for example under Metrics.
 - **Short enough to read in five minutes.** Aim for under 300 lines. Link out to detail rather than pasting it in.
 - **No secrets.** No API keys, internal URLs that expose infrastructure, customer names you have no permission to share, or revenue figures you would not publish.
 - **One file, one truth.** Other documents can link to DEVREL.md instead of repeating it.
@@ -227,7 +227,7 @@ Score each segment from 1 to 5 on four factors:
 
 ## Versioning
 
-This is version 0.1.0, a draft. Minor versions add optional sections or fields, and existing files stay valid. Major versions may rename or remove required sections, and they come with a migration note. Changes go through an issue first, then a pull request, in the `devrel-md/spec` repository.
+This is version 0.1.0, a draft. Minor versions add optional sections or fields, and existing files stay valid. Major versions may rename or remove required sections, and they come with a migration note. Changes go through an issue first, then a pull request, in the `devrel-md/spec` repository. Small documentation corrections can go straight to a pull request. See [CONTRIBUTING.md](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) for how to report a problem, propose a change or a skill, and how decisions are made and recorded.
 
 ## Credits
 
