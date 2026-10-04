@@ -7,6 +7,16 @@ import { isOverDailySpendCap } from "@/lib/spendCap";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/generatorPrompt";
 import { discoverPages, type InputPageStatus } from "@/lib/discoverPages";
 import { groundingProblems, hasEnoughSource } from "@/lib/grounding";
+import { extractFunnelGates } from "@/lib/funnelGates";
+import { isIndexable } from "@/lib/resultPolicy";
+
+/** What the route stores beside the file: how many pages it was written from, whether it
+ * clears the bar for search indexing, and the company's own DEVREL.md if discovery found one. */
+export interface ResultProvenance {
+  pagesRead: number;
+  indexable: boolean;
+  ownDevrelUrl: string | null;
+}
 
 export interface GenerateSuccess {
   status: "success";
@@ -92,7 +102,7 @@ export async function generateDevrelMd(params: {
   beforeFirstModelCall?: () => Promise<void>;
   /** Called once validation passes, before the attempt is logged, so the
    * logged attempt can carry the resulting row's id. */
-  persistResult?: (markdown: string, model: string, costUsd: number) => Promise<string>;
+  persistResult?: (markdown: string, model: string, costUsd: number, provenance: ResultProvenance) => Promise<string>;
 }): Promise<GenerateOutcome> {
   const chain = await buildChain();
   if (chain.length === 0) {
@@ -166,13 +176,25 @@ export async function generateDevrelMd(params: {
     const { result } = outcome;
     // Structure first, then provenance: a well-formed file with invented
     // figures is still a failure.
-    const problems = [...validate(result.text), ...groundingProblems(result.text, pages)];
+    const validatorProblems = validate(result.text);
+    const groundingIssues = groundingProblems(result.text, pages);
+    const problems = [...validatorProblems, ...groundingIssues];
     const servedModel = result.servedModel ?? step.model;
     const markdown = result.text.trim();
 
     let resultId: string | null = null;
     if (problems.length === 0 && params.persistResult) {
-      resultId = await params.persistResult(markdown, servedModel, result.costUsd);
+      resultId = await params.persistResult(markdown, servedModel, result.costUsd, {
+        pagesRead: pages.length,
+        // Only a clean draft is persisted, so this reduces to the sourced fact test today.
+        // It still takes both problem lists, so loosening the retry rule cannot loosen indexing.
+        indexable: isIndexable({
+          validatorProblems,
+          groundingProblems: groundingIssues,
+          gates: extractFunnelGates(markdown),
+        }),
+        ownDevrelUrl: pages.ownDevrelUrl ?? null,
+      });
     }
 
     await logAttempt({

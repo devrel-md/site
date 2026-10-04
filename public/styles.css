@@ -702,3 +702,9 @@ body.home main pre {
 .gate-empty {
   color: var(--muted);
 }
+
+.provenance {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}

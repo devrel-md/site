@@ -37,6 +37,10 @@ Once you have the id, fetch the finished file as Markdown:
 curl https://devrel.md/r/a1b2c3d4.md
 ```
 
+Every result carries a provenance line (when it was generated, from how many public pages of which site) and is sent with `X-Robots-Tag: noindex` unless it passed our checks and states at least one sourced fact. The Markdown view at `/r/<id>.md` adds the provenance as an HTML comment just before the closing `<!-- Generated with devrel.md -->` line, and `?download=1` returns the stored file unchanged. If the site publishes its own valid DEVREL.md at `/DEVREL.md` or `/.well-known/DEVREL.md`, the result links to it as canonical.
+
+To opt a site out, disallow `devrel.md-generator` in its robots.txt: the generator then refuses that site, and its existing results are marked excluded. To have results removed, email hello@devrel.md. A request for an excluded site returns HTTP 403 with an `error` message.
+
 ## Testing safely
 
 There is no separate staging environment: it is the same generator everyone else uses. It is still safe to test against directly. Every generation is cached per URL for 24 hours, so retrying the same request during testing returns the cached result instead of spending another model call. If you are integration-testing your own client against a self-hosted copy of this app, Cloudflare's documented always-pass Turnstile test keys work locally exactly as they do in this project's own development setup (see `.env.example` in the repository).

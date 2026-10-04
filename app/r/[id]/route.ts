@@ -4,6 +4,14 @@ import { renderPage } from "@/lib/page";
 import { getResult } from "@/lib/results";
 import { frontmatterPanelHtml } from "@/lib/frontmatterPanel";
 import { stageGatesHtml, rawToggleHtml, communityFormHtml, fileActionsHtml } from "@/lib/resultPage";
+import {
+  shouldIndex,
+  provenanceText,
+  provenanceHtml,
+  excludedHtml,
+  ownFileHtml,
+  withProvenanceComment,
+} from "@/lib/resultPolicy";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -36,16 +44,28 @@ export async function GET(request: Request, { params }: Params): Promise<Respons
 
   const url = new URL(request.url);
   const isDownload = url.searchParams.get("download") === "1";
+  const indexed = shouldIndex(result);
+  const excluded = Boolean(result.excluded_at);
+  const ownFile = result.own_devrel_url ?? null;
 
   if (wantsMarkdown(request, forceMarkdown) || isDownload) {
     const headers = markdownHeaders(mdPath);
-    if (isDownload) headers.set("Content-Disposition", 'attachment; filename="DEVREL.md"');
-    return new Response(result.markdown, { status: 200, headers });
+    if (!indexed) headers.set("X-Robots-Tag", "noindex");
+    if (ownFile) headers.append("Link", `<${ownFile}>; rel="canonical"`);
+    if (isDownload) {
+      headers.set("Content-Disposition", 'attachment; filename="DEVREL.md"');
+      // The download is the file itself, byte for byte.
+      return new Response(result.markdown, { status: 200, headers });
+    }
+    return new Response(withProvenanceComment(result.markdown, provenanceText(result)), { status: 200, headers });
   }
 
   const { html: bodyHtml, frontmatter } = await parseMarkdown(result.markdown);
 
   const preContent = [
+    provenanceHtml(result),
+    excluded ? excludedHtml() : "",
+    ownFile ? ownFileHtml(ownFile) : "",
     frontmatterPanelHtml(frontmatter),
     stageGatesHtml(result.gates),
     rawToggleHtml(result.markdown),
@@ -61,7 +81,11 @@ export async function GET(request: Request, { params }: Params): Promise<Respons
     preContent,
     postContent,
     copyButtons: false,
+    noindex: !indexed,
+    canonicalUrl: ownFile ?? undefined,
   });
 
-  return htmlResponse(page, mdPath);
+  const response = htmlResponse(page, mdPath);
+  if (!indexed) response.headers.set("X-Robots-Tag", "noindex");
+  return response;
 }

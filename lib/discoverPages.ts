@@ -5,6 +5,7 @@
 import { safeFetch, SsrfBlockedError } from "@/lib/ssrf";
 import { htmlToText, extractLinks } from "@/lib/htmlToText";
 import { isDisallowed } from "@/lib/robotsCheck";
+import { validate } from "@/lib/validator";
 
 export interface FetchedPage {
   url: string;
@@ -18,7 +19,31 @@ export interface InputPageStatus {
   blockedByRobots: boolean;
 }
 
-export type DiscoveredPages = FetchedPage[] & { input?: InputPageStatus };
+/** `ownDevrelUrl` is set when the site publishes its own valid DEVREL.md. */
+export type DiscoveredPages = FetchedPage[] & { input?: InputPageStatus; ownDevrelUrl?: string | null };
+
+const OWN_FILE_PATHS = ["/DEVREL.md", "/.well-known/DEVREL.md"];
+
+/** Looks for a DEVREL.md the company publishes itself, at the site root or under
+ * /.well-known. It must come from the same host (after redirects), be allowed by
+ * robots.txt, and pass the validator; anything else is ignored. The file is only
+ * recorded, never given to the model. */
+export async function findOwnDevrel(origin: string): Promise<string | null> {
+  const host = new URL(origin).hostname;
+  for (const path of OWN_FILE_PATHS) {
+    if (await isDisallowed(origin, path)) continue;
+    const url = `${origin}${path}`;
+    try {
+      const res = await safeFetch(url);
+      if (res.status !== 200 || res.truncated) continue;
+      if (new URL(res.url).hostname !== host) continue;
+      if (validate(res.text).length === 0) return url;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
 
 function isMarkdownLike(url: string, contentType: string | null): boolean {
   if (url.endsWith(".md") || url.endsWith(".txt")) return true;
@@ -79,6 +104,7 @@ const NON_TECH = [/\/blog\//, /\/news\//, /\/articles\//, /\/posts\//, /\/case-s
 export async function discoverPages(inputUrl: string): Promise<DiscoveredPages> {
   const origin = new URL(inputUrl).origin;
   const pages: FetchedPage[] = [];
+  const ownDevrel = findOwnDevrel(origin);
 
   let inputHtml = "";
   const inputPathname = new URL(inputUrl).pathname;
@@ -142,5 +168,5 @@ export async function discoverPages(inputUrl: string): Promise<DiscoveredPages> 
     if (content) pages.push({ url: item.url, label: item.label, content });
   }
 
-  return Object.assign(pages, { input });
+  return Object.assign(pages, { input, ownDevrelUrl: await ownDevrel });
 }
