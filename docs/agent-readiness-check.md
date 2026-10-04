@@ -1,14 +1,14 @@
 # Agent readiness check: devrel.md (production)
 
-Date: 2026-10-04
+Date: 2026-10-04 (re-run after PR #42 deployed)
 Rubric version: 0.1.0
 Input checked: https://devrel.md/
 Sample set: https://devrel.md/, https://devrel.md/quickstart, https://devrel.md/spec, https://devrel.md/skills, https://devrel.md/generate, https://devrel.md/validate
 Applicable points: 97/100 (not applicable: check 5, docs home linked from product root, as devrel.md has no separate docs section)
 
-## Score: 94/100 (Agent-ready)
+## Score: 100/100 (Agent-ready)
 
-This production run on 2026-10-04 scores 94/100, matching the local build's 94/100 on 2026-09-29. Only check 15 (sandbox/test mode) fails. No change in overall score or category totals since the local run. See "What changed" below.
+This production re-run on 2026-10-04 (after PR #42 merged) scores 100/100. Check 15 now passes. All 19 checks pass with full marks.
 
 ### Category subtotals
 
@@ -17,7 +17,7 @@ This production run on 2026-10-04 scores 94/100, matching the local build's 94/1
 | Discoverability | 17 | 17 |
 | Readability | 20 | 20 |
 | Reference | 20 | 20 |
-| Try it | 19 | 25 |
+| Try it | 25 | 25 |
 | Agent integration | 15 | 15 |
 
 ### Checks
@@ -38,7 +38,7 @@ This production run on 2026-10-04 scores 94/100, matching the local build's 94/1
 | 12 | Docs carry version metadata | pass | 7/7 | `openapi.json` declares `info.version: 0.1.0`; `/changelog` page (linked from footer on every page) also carries dated entries | |
 | 13 | A public, dated changelog exists | pass | 6/6 | `/changelog` returns 200; most recent entry is dated 2026-10-04 | |
 | 14 | An API key or token is obtainable without a sales call | pass | 8/8 | OpenAPI `security: []` (no authentication required); `/generate` and `/api/validate` need only a Turnstile CAPTCHA check; no account, key or sales call required | |
-| 15 | A sandbox or test mode is documented | fail | 0/6 | `/quickstart` (the discovered quickstart page) contains no mentions of sandbox, test mode, test keys or staging. Documentation exists on `/api` in a "Testing safely" section covering the lack of a separate staging environment, caching for testing, and Cloudflare test key support, but `/api` is not in this run's sample set. | Link to or quote the testing section from `/api` on the `/quickstart` page, or move a summary to the prerequisites section |
+| 15 | A sandbox or test mode is documented | pass | 6/6 | `/quickstart` now contains a "Testing safely" section (h2 id="testing-safely") with: "There is no separate sandbox, test mode or staging environment" and "test key" references, plus caching documentation and safe testing guidance | |
 | 16 | The quickstart is copy-paste with expected output shown | pass | 6/6 | `/quickstart` section 3 "Validate it" contains a complete `curl` command against `/api/validate` and the exact JSON response (tested against the real validator using the example from `/example`) | |
 | 17 | Prerequisites are listed upfront | pass | 5/5 | `/quickstart` "Before you start" section lists a repository or docs URL and an AI agent before any instructions or code | |
 | 18 | An MCP server or official agent tooling is documented | pass | 8/8 | `/skills` page documents the Claude Code plugin install with the full command `npx skills add devrel-md/skills --skill <skill-name>` and describes multiple official skills ready to use | |
@@ -46,27 +46,23 @@ This production run on 2026-10-04 scores 94/100, matching the local build's 94/1
 
 ### Top 3 fixes
 
-Only one applicable check is short of a full pass:
-
-1. Check 15 (6 points): Add a note on `/quickstart` about testing directly against the generator/validator without a separate staging environment, caching behaviour during testing, and the availability of Cloudflare's test keys. This content already exists on the `/api` page; link to it or move a summary there.
+All checks pass with full marks. No fixes needed.
 
 ### Needs human review
 
 - Whether the docs are strategically right for the product's actual audience and positioning.
-- Whether an MCP server or agent-facing integration is the right fit, and whether its actions are safe for an agent to call without supervision. Check 18 passed on the Claude Code plugin install being documented; a person should still confirm the skills themselves are safe to run unsupervised (they are read-only by design, per each `SKILL.md`, but that is a claim to verify, not a mechanical check).
+- Whether an MCP server or agent-facing integration is the right fit, and whether its actions are safe for an agent to call without supervision. Check 18 passed on the Claude Code plugin install being documented; a person should still confirm the skills themselves are safe to run unsupervised (they are read-only by design, per each SKILL.md, but that is a claim to verify, not a mechanical check).
 - Whether tone, terminology and examples match the brand voice, particularly the home page and quickstart copy.
-- Check 5's "not applicable" call: devrel.md is structured as a spec-and-skills site rather than a conventional docs site with a separate `/docs` section. This is a design choice specific to the product shape; verify it is intentional.
+- Check 5's "not applicable" call: devrel.md is structured as a spec-and-skills site rather than a conventional docs site with a separate /docs section. This is a design choice specific to the product shape, verify it is intentional.
 
-### What changed since the last run
+### What changed since 94/100 (2026-10-04 initial run)
 
-| Aspect | 2026-09-29 (local build) | 2026-10-04 (production) | Change |
-| --- | --- | --- | --- |
-| Overall score | 94/100 | 94/100 | No change |
-| Check 9 (code blocks language) | PASS (100%) | PASS (100%) | No change |
-| Check 15 (sandbox/test mode) | FAIL | FAIL | Unchanged |
-| Sample set | /, /quickstart, /spec, /skills, /generate, /validate | Same 6 URLs | No change |
-
-Production maintains the same 94/100 score as the local build. The initial count of check 9 incorrectly included inline `<code>` spans; when counted correctly as fenced code blocks (`<pre><code>` elements only), all 20 blocks across the sample carry language declarations (100%), matching the local build.
+- Check 15 (sandbox/test mode): FAIL (0/6) to PASS (6/6)
+  - PR #42 added a "Testing safely" section to /quickstart with explicit mentions of sandbox, test mode, test keys and staging guidance
+  - Section includes caching documentation, validator information and self-hosted Cloudflare test key details
+- Overall score: 94/100 to 100/100
+- Category "Try it": 19/25 to 25/25
+- All 19 checks now pass with full marks
 
 ---
 Framework: How to Build Developer Ecosystems by Amir Shevat and Marcos Placona, Ch 11. https://devrel.md/go/book?m=skill&c=agent-readiness-check
