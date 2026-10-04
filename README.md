@@ -55,7 +55,7 @@ scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
 
 ### Data
 
-Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `community_subscribers`, legacy `leads` and `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. `npm run delete-lead -- <email>` removes a subscriber or legacy lead and their outbox rows.
+Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `community_subscribers`, legacy `leads` and `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. The client IP is the `X-Forwarded-For` entry that many places from the right as `TRUSTED_PROXY_HOPS` (default 1, the OpenShip edge, which appends the peer address); entries further left are client-controlled and ignored. IPv6 is keyed on its /64. A request with no trustworthy address shares one strict bucket (2 generations and 10 validations a day in total). `npm run delete-lead -- <email>` removes a subscriber or legacy lead and their outbox rows.
 
 ### The generator's fallback chain
 

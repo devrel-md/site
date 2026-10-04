@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import {
   CONFIRMATION_TTL_DAYS,
   purgeExpiredPending,
@@ -42,8 +43,10 @@ export async function POST(request: Request): Promise<Response> {
       400,
     );
   }
+  // clientIp is "unknown" or an IPv6 /64 prefix when there is no single address
+  // to give Turnstile, which only wants a real one, so omit it then.
   const ip = clientIp(request.headers);
-  if (!(await verifyTurnstile(turnstileToken, ip === "unknown" ? undefined : ip))) {
+  if (!(await verifyTurnstile(turnstileToken, isIP(ip) ? ip : undefined))) {
     return page("<p>That human check did not pass. Go back and try again.</p>", 400);
   }
 

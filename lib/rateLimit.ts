@@ -2,8 +2,12 @@ import { query } from "@/lib/db";
 import {
   RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
   RATE_LIMIT_PER_IP_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY,
+  RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY,
   RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
 } from "@/lib/generatorConfig";
+import { UNKNOWN_IP, hashIp } from "@/lib/hash";
 
 export type RateLimitKind = "generate" | "validate" | "community";
 
@@ -12,6 +16,17 @@ const LIMITS: Record<RateLimitKind, number> = {
   validate: RATE_LIMIT_VALIDATE_PER_IP_PER_DAY,
   community: RATE_LIMIT_COMMUNITY_PER_IP_PER_DAY,
 };
+
+const UNKNOWN_LIMITS: Record<RateLimitKind, number> = {
+  generate: RATE_LIMIT_UNKNOWN_IP_GENERATE_PER_DAY,
+  validate: RATE_LIMIT_UNKNOWN_IP_VALIDATE_PER_DAY,
+  community: RATE_LIMIT_UNKNOWN_IP_COMMUNITY_PER_DAY,
+};
+
+/** Requests with no trustworthy address share one bucket, so it gets a stricter limit. */
+function limitFor(ipHash: string, kind: RateLimitKind): number {
+  return ipHash === hashIp(UNKNOWN_IP) ? UNKNOWN_LIMITS[kind] : LIMITS[kind];
+}
 
 /** Atomically increments today's (UTC) request count for a hashed IP and
  * `kind`, and returns whether this request is still within that kind's
@@ -30,7 +45,7 @@ export async function checkAndIncrementRateLimit(
     [ipHash, kind]
   );
   const count = rows[0]?.count ?? 1;
-  return { allowed: count <= LIMITS[kind], count };
+  return { allowed: count <= limitFor(ipHash, kind), count };
 }
 
 /** Whether today's limit for this hashed IP and `kind` is already used up,
@@ -42,5 +57,5 @@ export async function isRateLimited(ipHash: string, kind: RateLimitKind = "gener
     `select count from rate_limits where ip_hash = $1 and day = (now() at time zone 'utc')::date and kind = $2`,
     [ipHash, kind]
   );
-  return (rows[0]?.count ?? 0) >= LIMITS[kind];
+  return (rows[0]?.count ?? 0) >= limitFor(ipHash, kind);
 }

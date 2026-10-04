@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { hashIp } from "@/lib/hash";
 
 const queryMock = vi.fn();
 vi.mock("@/lib/db", () => ({ query: (...args: unknown[]) => queryMock(...args) }));
@@ -108,5 +109,24 @@ describe("POST /api/validate", () => {
     );
     const [, params] = queryMock.mock.calls[0]!;
     expect(params).toContain("validate");
+  });
+
+  it("rate limits on the address the edge appended, whatever the client forges", async () => {
+    const { POST } = await import("@/app/api/validate/route");
+    const send = (forwarded: string) =>
+      POST(
+        new Request("https://devrel.md/api/validate", {
+          method: "POST",
+          headers: { "content-type": "text/markdown", "x-forwarded-for": forwarded },
+          body: VALID_MARKDOWN,
+        })
+      );
+    await send("198.51.100.4");
+    await send("203.0.113.7, 198.51.100.4");
+    await send("203.0.113.8, 198.51.100.4");
+    const keys = queryMock.mock.calls.map(([, params]) => (params as string[])[0]);
+    expect(keys).toHaveLength(3);
+    expect(new Set(keys).size).toBe(1);
+    expect(keys[0]).toBe(hashIp("198.51.100.4"));
   });
 });

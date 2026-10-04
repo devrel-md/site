@@ -25,6 +25,7 @@ vi.mock("@/lib/env", async (importOriginal) => ({
   isConfigured: () => resendConfiguredMock(),
 }));
 
+import { hashIp } from "@/lib/hash";
 import { POST as subscribe } from "@/app/api/community/route";
 import { POST as retiredLead } from "@/app/api/lead/route";
 
@@ -60,6 +61,24 @@ describe("community signup", () => {
       confirm_token: "confirm-token",
       folk_person_id: null,
     });
+  });
+
+  it("rate limits community signup on the trusted address, not a forged leftmost entry", async () => {
+    const forged = new Request("https://devrel.md/api/community", {
+      method: "POST",
+      headers: { "x-forwarded-for": "198.51.100.77, 203.0.113.9" },
+      body: new URLSearchParams(valid),
+    });
+    await subscribe(forged);
+    expect(rateLimitMock).toHaveBeenCalledWith(hashIp("203.0.113.9"), "community");
+    expect(turnstileMock).toHaveBeenCalledWith("token-ok", "203.0.113.9");
+  });
+
+  it("gives Turnstile no address when there is no single trusted one", async () => {
+    const noProxy = new Request("https://devrel.md/api/community", { method: "POST", body: new URLSearchParams(valid) });
+    await subscribe(noProxy);
+    expect(turnstileMock).toHaveBeenCalledWith("token-ok", undefined);
+    expect(rateLimitMock).toHaveBeenCalledWith(hashIp("unknown"), "community");
   });
 
   it("stores a pending signup and sends one confirmation, with no external sync", async () => {
