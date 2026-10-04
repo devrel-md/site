@@ -1,3 +1,7 @@
+# Historical test record
+
+This document records the earlier email unlock flow. The current result page allows anonymous copy and download, and `/api/lead` returns 410. Use the community signup route for current consent testing.
+
 # Local end-to-end run
 
 Date: 2026-09-28

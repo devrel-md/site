@@ -1,5 +1,4 @@
 import { escapeHtml } from "@/lib/html";
-import { ROLES, TEAM_SIZES } from "@/lib/qualify";
 import { nextStep } from "@/lib/funnelGates";
 import type { FunnelGate } from "@/lib/results";
 
@@ -111,56 +110,30 @@ export function rawToggleHtml(markdown: string): string {
 </details>`;
 }
 
-export function leadFormHtml(resultId: string): string {
-  const roleOptions = ROLES.map((r) => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("\n");
-  const teamOptions = TEAM_SIZES.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("\n");
-
+export function communityFormHtml(): string {
   return `<div class="callout">
-<h2 id="get-the-file">Get the file</h2>
-<p>The file above is free to read. Leave a few details to unlock copy and download, and we will also email it to you.</p>
-<form class="lead-form" method="post" action="/api/lead">
-<input type="hidden" name="resultId" value="${escapeHtml(resultId)}">
+<h2 id="community-updates">Community updates</h2>
+<p>Want occasional news about DEVREL.md, new skills and ways to contribute? Joining is optional and separate from your file.</p>
+<form class="lead-form" method="post" action="/api/community">
 <div>
 <label for="email">Email</label>
-<input id="email" name="email" type="email" required>
-</div>
-<div>
-<label for="company">Company</label>
-<input id="company" name="company" type="text" required>
-</div>
-<div>
-<label for="role">Role</label>
-<select id="role" name="role" required>
-<option value="" disabled selected>Choose one</option>
-${roleOptions}
-</select>
-</div>
-<div>
-<label for="teamSize">Team size</label>
-<select id="teamSize" name="teamSize" required>
-<option value="" disabled selected>Choose one</option>
-${teamOptions}
-</select>
+<input id="email" name="email" type="email" autocomplete="email" required>
 </div>
 <div class="checkbox-row">
-<input id="seriesOptIn" name="seriesOptIn" type="checkbox">
-<label for="seriesOptIn">Send me the 5-email series on fixing my failing stage gates</label>
+<input id="communityConsent" name="communityConsent" type="checkbox" required>
+<label for="communityConsent">Yes, email me occasional DEVREL.md community updates. I can unsubscribe any time.</label>
 </div>
-<button class="primary" type="submit">Unlock copy and download</button>
+<button class="primary" type="submit">Join community updates</button>
 </form>
 </div>`;
 }
 
-export function unlockedPanelHtml(resultId: string, qualified: boolean, leadToken: string): string {
-  const handoff = qualified
-    ? `<p>Want someone to find and fix the break with you? <a href="/go/audit?m=generator&c=result&t=${escapeHtml(leadToken)}">Book a 20-minute review of this file</a>.</p>`
-    : `<p>Want the fuller picture? <a href="/go/book?m=generator&c=result&t=${escapeHtml(leadToken)}">Read the book</a>, or run the next skill above yourself.</p>`;
-
+export function fileActionsHtml(resultId: string): string {
   return `<div class="callout">
-<h2 id="unlocked">Copy and download</h2>
+<h2 id="get-the-file">Copy and download</h2>
+<p>Your file is free to read, copy and download. No email is needed.</p>
 <button class="primary" type="button" id="copy-markdown" data-target="raw-markdown">Copy Markdown</button>
 <a class="primary" style="display:inline-block;margin-left:0.5rem;text-decoration:none" href="/r/${escapeHtml(resultId)}.md?download=1" download="DEVREL.md">Download DEVREL.md</a>
-${handoff}
 </div>
 <script>
 (function(){
@@ -169,10 +142,24 @@ ${handoff}
   btn.addEventListener('click', function () {
     var target = document.getElementById(btn.getAttribute('data-target'));
     if (!target) return;
-    navigator.clipboard.writeText(target.textContent || '').then(function () {
+    function copied() {
       btn.textContent = 'Copied';
       setTimeout(function () { btn.textContent = 'Copy Markdown'; }, 2000);
-    });
+    }
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents(target);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        if (document.execCommand('copy')) { copied(); return; }
+      } catch (error) {}
+      btn.textContent = 'Selected: press Ctrl+C or Command+C';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(target.textContent || '').then(copied, fallback);
+    } else fallback();
   });
 })();
 </script>`;

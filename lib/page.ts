@@ -13,7 +13,7 @@ export interface PageOptions {
   postContent?: string;
   /** Added to <body>, for page-specific CSS scoping (e.g. the home page's layout). */
   bodyClassName?: string;
-  /** Add "Copy" buttons to code blocks (default true). Off on result pages, where copying is gated behind the email form. */
+  /** Add "Copy" buttons to code blocks (default true). Result pages have a dedicated full-file button. */
   copyButtons?: boolean;
 }
 

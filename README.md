@@ -32,7 +32,7 @@ The repo's `.infisical.json` binds it to the devrel.md Infisical project (EU, wo
 
 Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log instead of sending/pushing) and the Turnstile keys defaulted to Cloudflare's documented always-pass test pair (`TURNSTILE_SITE_KEY`, `TURNSTILE_SITE_SECRET`; `TURNSTILE_SECRET_KEY` also works, as a fallback for the brief's original naming). See `.env.example` for every variable.
 
-`RESEND_API_KEY` only needs to be a sending key for email to work. Audience upserts (`RESEND_AUDIENCE_ID`) need a full-access key: with a sending-only key, `lib/resend.ts` logs once and skips the audience sync rather than failing the lead flow or the outbox.
+Community signup stores email and consent in Postgres. To sync opted-in contacts to a Resend audience for later community broadcasts, configure `RESEND_AUDIENCE_ID` and a full-access `RESEND_API_KEY`. A sending-only key cannot manage contacts. With `FOLK_API_KEY`, the same voluntarily subscribed email is tagged as a community contact in Folk. The database remains the source of consent; the community form never qualifies leads or schedules the old sales series.
 
 ### Synced content
 
@@ -55,7 +55,7 @@ scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
 
 ### Data
 
-Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `leads`, `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. `npm run delete-lead -- <email>` removes a lead and their outbox rows, the DELETE path required by the privacy notice.
+Postgres, `pg`, no ORM. Tables: `results`, `attempts`, `community_subscribers`, legacy `leads` and `outbox`, `clicks`, `rate_limits` (keyed by IP hash, day and `kind`, so the generator and the validator have separate daily budgets). IPs are never stored raw, only `sha256(ip + IP_HASH_SALT)`. `npm run delete-lead -- <email>` removes a subscriber or legacy lead and their outbox rows.
 
 ### The generator's fallback chain
 
@@ -85,7 +85,7 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Local end-to-end run
 
-See `docs/local-e2e.md` for a recorded run against the dev database on porg: migrations applied, one real generation against `https://resend.com` through OpenRouter, a lead captured with Resend and Folk unset, and the result page rendering.
+`docs/local-e2e.md` preserves a historical generator run; its email unlock steps describe the retired flow. Before sending a community broadcast, reconcile the active Postgres subscriptions with the Resend audience and Folk tags, especially if a sync call previously failed.
 
 ## Agent readiness
 
