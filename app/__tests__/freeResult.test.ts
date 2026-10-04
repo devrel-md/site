@@ -62,7 +62,10 @@ describe("hostile model output on /r/[id]", () => {
     const html = await response.text();
 
     // Strip the three scripts the site itself ships (theme, toggle and the copy button) and look at the rest.
-    const withoutOwnScripts = html.replace(/<script>[\s\S]*?<\/script>/g, "");
+    // The one external script is Cloudflare Turnstile's, for the community form.
+    const withoutOwnScripts = html
+      .replace(/<script>[\s\S]*?<\/script>/g, "")
+      .replace(/<script src="https:\/\/challenges\.cloudflare\.com\/turnstile\/v0\/api\.js" async defer><\/script>/, "");
     expect(withoutOwnScripts).not.toMatch(/<script/i);
     expect(html.match(/<script>/g)?.length).toBe(3);
     // Only real tags matter: the raw Markdown view legitimately shows the source as escaped text.
