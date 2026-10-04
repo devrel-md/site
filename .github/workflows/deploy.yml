@@ -2,7 +2,8 @@ name: Deploy
 
 # Deploys only follow a green CI run. The CI workflow runs on every push to main; when it
 # finishes, this workflow starts for that same commit if, and only if, it succeeded.
-# workflow_dispatch stays for manual redeploys of the current head of main.
+# workflow_dispatch stays for manual redeploys of the current head of main. Either way, a run only
+# deploys if its commit is still the tip of main when it starts (see the guard step).
 on:
   workflow_run:
     workflows: [CI]
@@ -35,7 +36,32 @@ jobs:
     env:
       DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
+      # CI runs for two merges can finish in the opposite order to the merges, and the concurrency
+      # group above queues deploys rather than cancelling them, so an older commit's deploy could
+      # run after a newer one and overwrite it. Only the commit at the tip of main may deploy.
+      # This runs when the job actually starts (after any queueing), before migrations, so an older
+      # commit never applies anything after a newer one. If the lookup fails the job fails: never
+      # deploy without knowing this is the head.
+      - name: Check this commit is still the head of main
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          tip="$(curl -fsS --retry 3 --retry-all-errors \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github.sha" \
+            "https://api.github.com/repos/$REPO/commits/heads/main")"
+          if ! printf '%s' "$tip" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error title=Deploy guard::Could not read the head of main, so nothing was deployed."
+            exit 1
+          fi
+          if [ "$tip" != "$DEPLOY_SHA" ]; then
+            echo "::notice title=Deploy skipped::main moved on to $tip; this run deploys nothing; the run for that commit will deploy it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip != 'true'
         with:
           ref: ${{ env.DEPLOY_SHA }}
           persist-credentials: false
@@ -49,6 +75,7 @@ jobs:
       # in the same change as the code) so the running version keeps working in between.
       # Only pg is needed, so install that alone rather than the whole app.
       - name: Apply pending database migrations
+        if: steps.guard.outputs.skip != 'true'
         run: |
           work="$RUNNER_TEMP/migrate"
           rm -rf "$work" && mkdir -p "$work"
@@ -59,6 +86,7 @@ jobs:
           set -a && . "$HOME/devrelmd/deploy.env" && set +a
           node db/migrate.ts
       - name: Deploy and verify health
+        if: steps.guard.outputs.skip != 'true'
         env:
           SHA: ${{ env.DEPLOY_SHA }}
         run: python3 scripts/openship-deploy.py
