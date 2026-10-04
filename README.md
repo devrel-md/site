@@ -38,6 +38,38 @@ Community signup is double opt-in. The form needs a valid Turnstile token and ha
 
 `content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request (run it after changing either source). They're plain files (not submodules) so every builder, OpenShip, Dokploy previews and a fresh clone, gets them without extra credentials.
 
+## Configuration
+
+`.env.example` lists every variable. `lib/env.ts` gives each one a local fallback so the app runs with nothing set, which would hide a missing secret in production. `lib/configCheck.ts` closes that gap: when `NODE_ENV=production` at runtime (never during `next build`, dev or tests), a required variable that is missing, empty or still on its development value is reported.
+
+| Variable | Production | If it is wrong in production |
+| --- | --- | --- |
+| `DATABASE_URL` | Required | Reported; database routes fail. |
+| `OPENROUTER_API_KEY` | Required, its own key and credit limit | Reported; every generation fails. |
+| `TURNSTILE_SITE_KEY` | Required, not a Cloudflare test key | Reported; test tokens fail real verification. |
+| `TURNSTILE_SITE_SECRET` (or `TURNSTILE_SECRET_KEY`) | Required, not a Cloudflare test key | Reported, and every Turnstile check is refused (generator and community signup), so nothing can bypass the bot check. |
+| `IP_HASH_SALT` | Required, not `local-dev-salt` | Reported. |
+| `CRON_SECRET` | Required, not `local-dev-cron-secret` | Reported, and `/api/cron/outbox` answers 503 to everyone. |
+| `SITE_URL` | Required, an https URL, not localhost | Reported. |
+| `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `EMAIL_FROM`, `FOLK_API_KEY` | Optional | Start-up warning only. Audience sync needs a full-access Resend key. |
+| `TRUSTED_PROXY_HOPS` | Optional; the default 1 matches the OpenShip edge | Not checked (see Data, below). |
+
+How a problem surfaces, without ever showing a value:
+
+- Start-up (`instrumentation.ts`) logs `PRODUCTION CONFIGURATION INVALID` with each variable name and reason, plus a warning per unset optional integration.
+- `/healthz` keeps `status: "ok"` and the exact `build_sha` (it is a liveness check and touches neither the database nor any third party), and adds `config` (`ok`, `invalid`, or `unchecked` outside production) and `config_problems` (names only).
+- `scripts/openship-deploy.py` lets a verified deploy finish, then fails the job with an error annotation naming the variables, so the problem is visible without the site going down.
+
+To set or fix production variables, put the value in Infisical `prod` first, then copy it into OpenShip without printing it. From this directory on a Mac (after `infisical login`), naming each variable to copy:
+
+```bash
+infisical export --env=prod --format=json \
+  | ssh -o BatchMode=yes ubuntu-8gb-hel1.tailbb74a2.ts.net \
+      "python3 -c \"\$(echo $(base64 < scripts/openship-set-env.py | tr -d '\n') | base64 -d)\" RESEND_API_KEY"
+```
+
+`scripts/openship-set-env.py` runs on the box, reads the export from stdin, refuses empty values and development defaults, and prints only the names it set. Setting variables does not redeploy: rerun the Deploy workflow (or merge to `main`), then check that `/healthz` reports `config: "ok"`.
+
 ## Architecture
 
 ```
@@ -85,7 +117,7 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Local end-to-end run
 
-`docs/local-e2e.md` preserves a historical generator run; its email unlock steps describe the retired flow. Before sending a community broadcast, reconcile the active Postgres subscriptions with the Resend audience and Folk tags, especially if a sync call previously failed.
+`docs/local-e2e.md` preserves a historical generator run; its email unlock steps describe the retired flow. The current checklist is `docs/production-e2e.md`, to be run against production once deploys work again. Before sending a community broadcast, reconcile the active Postgres subscriptions with the Resend audience and Folk tags, especially if a sync call previously failed.
 
 ## Agent readiness
 
