@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { siteHeaderHtml, siteFooterHtml, NAV } from "@/lib/siteLayout";
+import { siteHeaderHtml, siteFooterHtml, NAV, CONTRIBUTE_URL } from "@/lib/siteLayout";
 
 describe("siteFooterHtml", () => {
   const footer = siteFooterHtml();
@@ -16,6 +16,12 @@ describe("siteFooterHtml", () => {
     expect(footer).toContain(
       '<a href="https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer"><em>How to Build Developer Ecosystems</em></a>'
     );
+  });
+
+  it("links the contribution guide as a plain external link in the footer", () => {
+    expect(footer).toContain(`<a class="nav-link" href="${CONTRIBUTE_URL}">Contribute</a>`);
+    expect(CONTRIBUTE_URL).toBe("https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md");
+    expect(footer).not.toMatch(/<a[^>]*CONTRIBUTING[^>]*(target|rel)=/);
   });
 });
 

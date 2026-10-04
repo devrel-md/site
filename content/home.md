@@ -128,4 +128,4 @@ One DEVREL.md per developer product, in that product's folder. The nearest file 
 
 ### Who maintains it?
 
-Created and maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home-faq) by Amir Shevat and Marcos Placona. [Read the full specification](/spec).
+Created and maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home-faq) by Amir Shevat and Marcos Placona. [Read the full specification](/spec). Marcos Placona maintains it today. Small corrections can go straight to a pull request, and the [contribution guide](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) explains how to report problems, propose changes or skills, and how decisions are made.

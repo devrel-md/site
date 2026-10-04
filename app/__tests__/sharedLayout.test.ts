@@ -41,6 +41,7 @@ function expectSharedChrome(html: string, current?: string) {
   expect(html).toContain('<footer class="site-footer">');
   expect(html).toContain('href="https://devrelbridge.com/?utm_source=devrel.md&utm_medium=footer"');
   expect(html).toContain('href="https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer"');
+  expect(html).toContain('href="https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md">Contribute</a>');
   if (current) {
     expect(html).toMatch(new RegExp(`href="${current}"[^>]*aria-current="page"`));
   }

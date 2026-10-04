@@ -16,6 +16,8 @@ export const NAV = [
 // as ordinary backlinks. No rel attribute on purpose.
 export const DEVREL_BRIDGE_URL = "https://devrelbridge.com/?utm_source=devrel.md&utm_medium=footer";
 export const BOOK_URL = "https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer";
+// The contribution guide lives in the spec repo. Shared by the footer and the home page FAQ.
+export const CONTRIBUTE_URL = "https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md";
 
 // The brand mark (braces around a dot), inline so it follows the theme through
 // currentColor. Decorative: the wordmark text next to it is the accessible name.
@@ -103,6 +105,7 @@ export function siteFooterHtml(): string {
     <a class="nav-link" href="/changelog">Changelog</a>
     <a class="nav-link" href="/api">API reference</a>
     <a class="nav-link" href="/privacy">Privacy</a>
+    <a class="nav-link" href="${CONTRIBUTE_URL}">Contribute</a>
   </div>
 </footer>`;
 }
