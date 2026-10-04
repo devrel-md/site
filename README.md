@@ -105,6 +105,10 @@ Model IDs and timeouts live in `lib/generatorConfig.ts`, not inline in the call 
 
 `lib/ssrf.ts` is the safe page fetcher: HTTPS only, resolves the hostname and refuses private, loopback, link-local, CGNAT and cloud-metadata IPv4/IPv6 ranges, including after each hop of a manually-followed, capped redirect chain (max 3). `lib/discoverPages.ts` uses it for the input page plus up to five discovered pages (`llms.txt`, docs home, quickstart, pricing, API reference), respecting `robots.txt` and the per-page character caps from the bake-off script.
 
+Every response carries HSTS, `X-Content-Type-Options: nosniff`, a `Referrer-Policy` and `X-Frame-Options: DENY` (static, from `next.config.ts` via `lib/securityHeaders.ts`), plus a `Content-Security-Policy` built per request in `proxy.ts` from `lib/csp.ts`. Scripts are allowed by nonce (Next's own inline scripts and the Turnstile `<Script>`) and by SHA-256 hash (our fixed inline scripts in `renderPage`, the layout and the result page), with no `unsafe-inline` or `unsafe-eval`. If you add an inline script, add its text to `INLINE_SCRIPTS` in `lib/csp.ts`; `lib/__tests__/csp.test.ts` fails if a rendered page carries one that is not covered. New third-party origins must be added to the policy deliberately.
+
+Generated Markdown (`/r/[id]`) is rendered with raw HTML dropped, and `lib/markdown.ts` also keeps only http, https, mailto and relative links and replaces non-same-origin images with their alt text. Tests with hostile input are in `lib/__tests__/markdownSanitise.test.ts` and `app/__tests__/freeResult.test.ts`.
+
 ## Testing
 
 ```bash

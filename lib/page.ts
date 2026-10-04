@@ -21,7 +21,7 @@ export interface PageOptions {
 // without this. It wraps each <pre> and adds a Copy button that uses the
 // async clipboard API, falling back to selecting the text (and the legacy
 // copy command) if the browser refuses.
-function copyScript(): string {
+export function copyScript(): string {
   return `(function(){
     var blocks = document.querySelectorAll('main pre');
     Array.prototype.forEach.call(blocks, function (pre) {
