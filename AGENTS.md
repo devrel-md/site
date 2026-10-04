@@ -12,8 +12,8 @@ A pull request that changes behaviour without these is incomplete.
 ## Workflow
 
 - Work on a branch and open a pull request against `main`. Never push to `main`.
-- Before opening a PR run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`. In the PR, say what you ran and what you could not run.
-- Merging to `main` deploys automatically (see "Deployment" in the README). After a merge, do not say a change is live until `https://devrel.md/healthz` reports the merged commit as `build_sha`.
+- Before opening a PR run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`, the same four steps CI runs. In the PR, say what you ran and what you could not run, and wait for the `ci` check to pass.
+- Merging to `main` deploys automatically once CI passes on `main` (see "Deployment" in the README). After a merge, do not say a change is live until `https://devrel.md/healthz` reports the merged commit as `build_sha`.
 - Add tests for what you change. Match the style of the surrounding code.
 
 ## Writing rules

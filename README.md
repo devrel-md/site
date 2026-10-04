@@ -93,13 +93,16 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Deployment
 
-Pushing to `main` deploys to production automatically. The workflow is `.github/workflows/deploy.yml`, and it runs on a self-hosted runner that lives on the OpenShip host, the only place OpenShip's API can be reached from. Deploys are serialised: a second push waits for the first to finish rather than overlapping it.
+Merging to `main` deploys to production automatically, but only after CI passes. Two workflows are involved:
 
-For each push, in order:
+- `.github/workflows/ci.yml` runs on every pull request and on every push to `main`: `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`, on a GitHub-hosted runner with no secrets and no database. Its job is named `ci`, and that is the check a pull request must pass.
+- `.github/workflows/deploy.yml` starts when CI finishes on `main`, and only if it succeeded for a push. It deploys that same commit. It runs on a self-hosted runner that lives on the OpenShip host, the only place OpenShip's API can be reached from. Deploys are serialised: a second one waits for the first rather than overlapping it. If CI fails on `main`, nothing deploys.
+
+For each deploy, in order:
 
 1. **Migrations first.** The runner applies any pending `db/migrations/*.sql` to the production database with `db/migrate.ts`. The connection string comes from a credentials file on the runner, not from GitHub secrets. If a migration fails, the job stops and nothing deploys.
-2. **Deploy.** `scripts/openship-deploy.py` sets `GIT_COMMIT_SHA` to the pushed commit, asks OpenShip to build and release exactly that commit, refuses to start while a previous build is still running, and waits for OpenShip to report it ready.
-3. **Health check.** The script then polls `/healthz` for up to two minutes until it returns `status: ok` with a `build_sha` equal to the pushed commit. If it never does, the job fails.
+2. **Deploy.** `scripts/openship-deploy.py` sets `GIT_COMMIT_SHA` to the commit CI ran on, asks OpenShip to build and release exactly that commit, refuses to start while a previous build is still running, and waits for OpenShip to report it ready.
+3. **Health check.** The script then polls `/healthz` for up to two minutes until it returns `status: ok` with a `build_sha` equal to that commit. If it never does, the job fails.
 
 A deploy is only finished when `/healthz` reports the commit you merged. Check it before telling anyone a change is live:
 
@@ -111,7 +114,7 @@ Because migrations run before the new code does, keep every migration additive (
 
 ### Previews
 
-Every pull request gets a preview deployment, and the preview tool posts its address as a comment on the pull request. Previews are separate from the production deploy above: they are built from the pull request branch and never touch production.
+Every pull request gets a preview deployment, and the preview tool posts its address as a comment on the pull request. Previews are separate from the production deploy above: they are built from the pull request branch and never touch production. CI runs on the pull request alongside the preview.
 
 ### Backups
 
@@ -119,8 +122,8 @@ The production database is backed up nightly, encrypted, to object storage. `ops
 
 ### Rolling back
 
-The deploy workflow always deploys the commit that triggered it. Its manual trigger (`workflow_dispatch`) takes no inputs and only runs on `main`, so running it by hand redeploys the current head of `main`, not an earlier commit.
+The deploy workflow always deploys a single commit. Its manual trigger (`workflow_dispatch`) takes no inputs and only runs on `main`, so running it by hand redeploys the current head of `main`, not an earlier commit. It skips CI, so use it only for a commit that has already passed.
 
-- **Normal route:** open a pull request that reverts the bad change (`git revert`), merge it, and let the usual deploy run. Then confirm `/healthz` reports the revert commit.
-- **Faster route, not yet exercised:** in the Actions tab, re-run the `Deploy` run for the last good commit on `main`. A re-run keeps that run's commit, so the workflow checks out, deploys and health-checks that commit. GitHub only allows re-running a run for 30 days after it started.
+- **Normal route:** open a pull request that reverts the bad change (`git revert`), merge it once `ci` passes, and let the usual deploy run. Then confirm `/healthz` reports the revert commit.
+- **Faster route, not yet exercised:** in the Actions tab, re-run the `Deploy` run for the last good commit on `main`. A re-run keeps the commit of the original run, so the workflow should migrate, deploy and health-check that commit again. GitHub only allows re-running a run for 30 days after it started.
 - **The database is not rolled back.** Migrations only go forward, and additive migrations leave older code working against the newer schema. If data itself is damaged, restore from a backup as described in `ops/backup/README.md`.

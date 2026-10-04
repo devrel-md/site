@@ -5,8 +5,13 @@ Dated, newest first.
 ## 2026-10-04
 
 - Generated files are free. You can read, copy and download the full DEVREL.md for any result without giving an email address.
-- Joining community updates is now optional and separate from the result. It asks for an email address only, needs an explicit tick to consent, and gives you an unsubscribe link straight away. Signing up is not a request for sales contact.
+- Joining community updates is optional and separate from the result. It asks for an email address only, and signing up is not a request for sales contact. It is double opt-in: the form checks you are human, we email a confirmation link that works for seven days, and you are only subscribed once you confirm. Every email carries an unsubscribe link.
 - The old "unlock copy and download" form is retired.
+- The skills catalog and `llms.txt` show a one-line summary and an install command for each skill. Chapter references are shown on their own, with the book and both authors credited once above the table.
+- Pages now send standard security headers and a strict content security policy. Links and images inside generated files are checked before they are shown, so a generated file cannot link to `javascript:` addresses or load remote images.
+- `/healthz` now reports whether the production configuration is complete, and features that would be unsafe on development defaults refuse to run instead.
+- Daily limits can no longer be bypassed by sending a forged `X-Forwarded-For` header. Visitors on IPv6 are limited per network rather than per address, and requests with no trustworthy address share one small allowance.
+- `/robots.txt` and `/sitemap.xml` now use the live site address instead of a localhost one.
 
 ## 2026-09-30
 
