@@ -5,6 +5,7 @@ Dated, newest first.
 ## 2026-10-04
 
 - Generated result pages now say they are automated drafts, when they were made and from how many public pages, and how to have one corrected or removed. They are open to search engines only when the draft passed every check and states at least one fact from the pages; otherwise they are marked `noindex`. A site can opt out by disallowing `devrel.md-generator` in robots.txt, and a company that publishes its own valid DEVREL.md is linked as the canonical version.
+- Community signups now reach the contact database: confirmed subscribers are added to the DEVREL.md community group, and unsubscribing removes them from it.
 - There is now a Contribute link in the footer and a link in the home page FAQ to the contribution guide, which explains how to report problems, propose changes or skills, and how decisions are made.
 - The quickstart now has a "Testing safely" section: how caching, the daily limits and the free validator let you try things without cost, and that there is no separate sandbox.
 - Generated files are checked more strictly. A current number must appear in the pages next to the metric it describes, so a gate threshold or an unrelated price can no longer stand in for a measurement, and targets must be placeholders, the spec's default thresholds or figures the pages state. Result and validate pages now say this is number matching, not fact checking.

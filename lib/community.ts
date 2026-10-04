@@ -1,5 +1,6 @@
 import { query, queryOne } from "@/lib/db";
 import { env } from "@/lib/env";
+import { syncCommunityToFolk } from "@/lib/folk";
 import { escapeHtml } from "@/lib/html";
 import { randomToken } from "@/lib/hash";
 import { sendEmail, type SendEmailResult } from "@/lib/resend";
@@ -110,6 +111,38 @@ export async function saveCommunityFolkId(email: string, personId: string): Prom
     `update community_subscribers set folk_person_id = $2 where email = $1`,
     [email, personId],
   );
+}
+
+/** Retries the Folk sync for confirmed, still subscribed people whose Folk
+ * person id was never saved (an earlier sync failed). Healing runs on the next
+ * confirmation and from `scripts/resync-folk.ts`. Oldest first, at most `limit`
+ * rows, optionally skipping an address already handled by the caller. Never
+ * throws. Returns how many rows were synced. */
+export async function retryMissingFolkSyncs(limit: number, excludeEmail?: string): Promise<number> {
+  try {
+    const rows = await query<{ email: string }>(
+      `select email from community_subscribers
+       where confirmed_at is not null
+         and unsubscribed_at is null
+         and folk_person_id is null
+         and ($2::text is null or email <> $2)
+       order by confirmed_at
+       limit $1`,
+      [limit, excludeEmail?.toLowerCase() ?? null],
+    );
+    let synced = 0;
+    for (const { email } of rows) {
+      const personId = await syncCommunityToFolk(email, null);
+      if (personId) {
+        await saveCommunityFolkId(email, personId);
+        synced++;
+      }
+    }
+    return synced;
+  } catch (error) {
+    console.error("Folk retry failed", error instanceof Error ? error.message : "unknown error");
+    return 0;
+  }
 }
 
 /** Sends the single confirmation email. It carries the unsubscribe link and,
