@@ -57,6 +57,7 @@ export interface SkillFrontmatter {
   license?: string;
   metadata?: {
     version?: string;
+    summary?: string;
     source?: string;
     homepage?: string;
     rubric?: string;

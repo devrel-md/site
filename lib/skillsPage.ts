@@ -1,5 +1,6 @@
 import { escapeHtml } from "@/lib/html";
-import { listSkills, type SkillSummary } from "@/lib/content";
+import { listSkills } from "@/lib/content";
+import { skillChapters, skillInstallCommand, skillSummaryText } from "@/lib/skillSummary";
 
 export const SKILLS_INSTALL_NOTE = `Read https://devrel.md and create a DEVREL.md for this repo.`;
 export const SKILLS_SH_COMMAND = `npx skills add devrel-md/skills`;
@@ -15,9 +16,8 @@ export function installBlockHtml(): string {
 <pre class="install-block"><code class="language-text">${escapeHtml(SKILLS_PLUGIN_COMMANDS)}</code></pre>`;
 }
 
-function skillMeta(skill: SkillSummary): string {
-  const chapters = skill.frontmatter.metadata?.source ?? "unknown";
-  return `Book chapters: ${escapeHtml(chapters)}`;
+function escapePipes(text: string): string {
+  return text.replace(/\|/g, "\\|");
 }
 
 export async function skillsCatalogHtml(): Promise<string> {
@@ -25,17 +25,20 @@ export async function skillsCatalogHtml(): Promise<string> {
   const items = skills
     .map((skill) => {
       const name = escapeHtml(skill.frontmatter.name ?? skill.slug);
-      const description = escapeHtml(skill.frontmatter.description ?? "");
+      const summary = escapeHtml(skillSummaryText(skill.frontmatter));
+      const chapters = escapeHtml(skillChapters(skill.frontmatter));
+      const install = escapeHtml(skillInstallCommand(skill.slug));
       return `<li>
 <h3 id="skill-${escapeHtml(skill.slug)}"><a href="/skills/${encodeURIComponent(skill.slug)}">${name}</a></h3>
-<p>${description}</p>
-<p class="meta">${skillMeta(skill)}</p>
+<p>${summary}</p>
+<p class="meta">Book chapters: ${chapters}</p>
+<pre class="install-block"><code class="language-bash">${install}</code></pre>
 </li>`;
     })
     .join("\n");
 
   return `<h1>Skills</h1>
-<p>Free skills built from <em>How to Build Developer Ecosystems</em> by Amir Shevat and Marcos Placona. Every skill reads your <a href="/spec">DEVREL.md</a> first, so you only explain your product once. Start with <a href="/skills/devrel-md-init">devrel-md-init</a>.</p>
+<p>Free skills built from <em>How to Build Developer Ecosystems</em> by Amir Shevat and Marcos Placona. Chapter references below point to that book. Every skill reads your <a href="/spec">DEVREL.md</a> first, so you only explain your product once. Start with <a href="/skills/devrel-md-init">devrel-md-init</a>.</p>
 <ul class="skill-list">
 ${items}
 </ul>
@@ -47,18 +50,18 @@ export async function skillsCatalogMarkdown(): Promise<string> {
   const rows = skills
     .map((skill) => {
       const name = skill.frontmatter.name ?? skill.slug;
-      const description = (skill.frontmatter.description ?? "").replace(/\|/g, "\\|");
-      const chapters = skill.frontmatter.metadata?.source ?? "unknown";
-      return `| [${name}](/skills/${skill.slug}) | ${description} | ${chapters} |`;
+      const summary = escapePipes(skillSummaryText(skill.frontmatter));
+      const chapters = escapePipes(skillChapters(skill.frontmatter));
+      return `| [${name}](/skills/${skill.slug}) | ${summary} | ${chapters} | \`${skillInstallCommand(skill.slug)}\` |`;
     })
     .join("\n");
 
   return `# Skills
 
-Free skills built from *How to Build Developer Ecosystems* by Amir Shevat and Marcos Placona. Every skill reads your DEVREL.md first, so you only explain your product once. Start with [devrel-md-init](/skills/devrel-md-init).
+Free skills built from *How to Build Developer Ecosystems* by Amir Shevat and Marcos Placona. Chapter references below point to that book. Every skill reads your DEVREL.md first, so you only explain your product once. Start with [devrel-md-init](/skills/devrel-md-init).
 
-| Skill | What it does | Book chapters |
-| --- | --- | --- |
+| Skill | What it does | Book chapters | Install |
+| --- | --- | --- | --- |
 ${rows}
 
 ## Install
