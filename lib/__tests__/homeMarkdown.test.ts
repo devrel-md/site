@@ -42,6 +42,20 @@ describe("renderHomeHtml", () => {
     expect(afterExample).toMatch(/<\/pre>\s*<p class="code-link"><a href="\/example">View the full example<\/a><\/p>/);
   });
 
+  it("keeps the contribution guide link inside the 'Who maintains it?' answer", async () => {
+    const raw = await readFile(path.join(process.cwd(), "content", "home.md"), "utf8");
+    const { html } = await renderHomeHtml(raw);
+
+    const start = html.indexOf("<summary>Who maintains it?</summary>");
+    expect(start).toBeGreaterThan(-1);
+    const end = html.indexOf("</details>", start);
+    const answer = html.slice(start, end);
+    expect(answer).toContain(
+      'the <a href="https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md">contribution guide</a> explains'
+    );
+    expect(answer).toContain("Marcos Placona maintains it today.");
+  });
+
   it("does not throw and skips the transform when a section is missing", async () => {
     const { html } = await renderHomeHtml("# Title\n\nJust a normal paragraph.\n");
     expect(html).toContain("<p>Just a normal paragraph.</p>");

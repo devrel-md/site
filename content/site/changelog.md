@@ -4,6 +4,7 @@ Dated, newest first.
 
 ## 2026-10-04
 
+- There is now a Contribute link in the footer and a link in the home page FAQ to the contribution guide, which explains how to report problems, propose changes or skills, and how decisions are made.
 - The quickstart now has a "Testing safely" section: how caching, the daily limits and the free validator let you try things without cost, and that there is no separate sandbox.
 - Generated files are checked more strictly. A current number must appear in the pages next to the metric it describes, so a gate threshold or an unrelated price can no longer stand in for a measurement, and targets must be placeholders, the spec's default thresholds or figures the pages state. Result and validate pages now say this is number matching, not fact checking.
 - Generated files are free. You can read, copy and download the full DEVREL.md for any result without giving an email address.
