@@ -36,7 +36,7 @@ ${skillLinks}
 ## Generator and validator
 
 - [Generate a DEVREL.md](${env.siteUrl}/generate): paste a product's docs or home URL and get a draft in about half a minute
-- [Validate a DEVREL.md](${env.siteUrl}/validate): paste a file and get the same quality check the generator uses
+- [Validate a DEVREL.md](${env.siteUrl}/validate): paste a file and get the generator's structural check (format only, not facts)
 - [API reference](${env.siteUrl}/api): the generator's HTTP API, no key required
 - [OpenAPI document](${env.siteUrl}/openapi.json)
 

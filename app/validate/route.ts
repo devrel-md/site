@@ -8,7 +8,7 @@ import { checkAndIncrementRateLimit } from "@/lib/rateLimit";
 import { clientIp, hashIp } from "@/lib/hash";
 
 const TITLE = "Validate: DEVREL.md";
-const DESCRIPTION = "Paste a DEVREL.md and get the same quality check the generator uses.";
+const DESCRIPTION = "Paste a DEVREL.md and get the structural check the generator uses: format, not facts.";
 
 export async function GET(request: Request): Promise<Response> {
   const markdown = await readValidateDescription();

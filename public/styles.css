@@ -646,6 +646,12 @@ body.home main pre {
   margin: 0.5rem 0 1rem;
 }
 
+.gates-note {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
 .gate-cards {
   display: grid;
   gap: 0.75rem;

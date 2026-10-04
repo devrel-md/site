@@ -5,6 +5,7 @@ Dated, newest first.
 ## 2026-10-04
 
 - The quickstart now has a "Testing safely" section: how caching, the daily limits and the free validator let you try things without cost, and that there is no separate sandbox.
+- Generated files are checked more strictly. A current number must appear in the pages next to the metric it describes, so a gate threshold or an unrelated price can no longer stand in for a measurement, and targets must be placeholders, the spec's default thresholds or figures the pages state. Result and validate pages now say this is number matching, not fact checking.
 - Generated files are free. You can read, copy and download the full DEVREL.md for any result without giving an email address.
 - Joining community updates is optional and separate from the result. It asks for an email address only, and signing up is not a request for sales contact. It is double opt-in: the form checks you are human, we email a confirmation link that works for seven days, and you are only subscribed once you confirm. Every email carries an unsubscribe link.
 - The old "unlock copy and download" form is retired.

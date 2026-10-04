@@ -1,6 +1,6 @@
 # Validate a DEVREL.md
 
-Paste a DEVREL.md file and get the same quality check the generator uses: valid frontmatter, every required section present and in order, a well-formed Funnel health table, and a sensible length. No login, no account, and nothing is stored except a daily rate-limit counter against your hashed IP.
+Paste a DEVREL.md file and get the structural check the generator uses: valid frontmatter, every required section present and in order, a well-formed Funnel health table, and a sensible length. It checks format only. The generator also checks that the numbers in a draft appear in the pages it read, next to the metric they describe; a pasted file has no source pages, so this page cannot tell you whether its content is true. No login, no account, and nothing is stored except a daily rate-limit counter against your hashed IP.
 
 ## API
 

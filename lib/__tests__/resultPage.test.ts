@@ -44,3 +44,16 @@ describe("stage gates summary", () => {
     expect(html).toContain("What we found:</strong> A Slack channel on the Scale plan");
   });
 });
+
+describe("stage gates summary wording", () => {
+  it("says a generated result is number matching, not fact checking", () => {
+    const html = stageGatesHtml(gates(["unknown", "unknown", "unknown", "unknown", "unknown"]));
+    expect(html).toContain("number matching, not fact checking");
+  });
+
+  it("does not claim a pasted file was compared with pages", () => {
+    const html = stageGatesHtml(gates(["unknown", "unknown", "unknown", "unknown", "unknown"]), "pasted");
+    expect(html).not.toContain("We read your public pages");
+    expect(html).toContain("Nothing here was compared with your pages");
+  });
+});
