@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { skillSummaryText } from "@/lib/skillSummary";
 import {
   readHome,
   readQuickstart,
@@ -12,7 +13,7 @@ import {
 export async function buildLlmsTxt(): Promise<string> {
   const skills = await listSkills();
   const skillLinks = skills
-    .map((s) => `- [${s.frontmatter.name}](${env.siteUrl}/skills/${s.slug}): ${s.frontmatter.description}`)
+    .map((s) => `- [${s.frontmatter.name}](${env.siteUrl}/skills/${s.slug}): ${skillSummaryText(s.frontmatter)}`)
     .join("\n");
 
   return `# DEVREL.md
