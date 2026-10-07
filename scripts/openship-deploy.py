@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Deploy a commit of main to the devrel.md OpenShip project and verify it is live.
 
-Runs on the self-hosted runner that lives on the OpenShip box, because the OpenShip API listens on
-127.0.0.1 and is reachable from nowhere else. Adapted from LinkIntel's scripts/openship-deploy.py.
+Runs on the self-hosted runner on the OpenShip control plane box (ubuntu-8gb-hel1), because the
+OpenShip API listens on 127.0.0.1 and is reachable from nowhere else. The app itself runs on the
+OpenShip server ubuntu-4gb-fsn1 (SERVER below). Adapted from LinkIntel's scripts/openship-deploy.py.
 
 The API token is read from the box's local credential store, never from GitHub secrets.
 
@@ -24,8 +25,8 @@ from pathlib import Path
 
 API = "http://127.0.0.1:4000"
 TOKEN_PATH = os.path.expanduser("~/.config/linkintel/openship.token")
-PROJECT = "proj_cYjTe6_4ea0e0wwR"
-SERVER = "36b84008-731b-4718-857a-c5173750da51"
+PROJECT = "proj_VTooQP1XM66SYDDZ"
+SERVER = "0cdb5d96-2de1-4254-a04f-bc5e807db20f"
 HEALTH_URL = "https://devrel.md/healthz"
 
 POLL_SECONDS = 10

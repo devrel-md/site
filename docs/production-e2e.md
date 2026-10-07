@@ -14,7 +14,7 @@
 Read-only database checks below run on the box, against the production database container:
 
 ```bash
-ssh -o BatchMode=yes ubuntu-8gb-hel1.tailbb74a2.ts.net
+ssh -o BatchMode=yes ubuntu-4gb-fsn1.tailbb74a2.ts.net
 docker exec -i devrelmd-prod-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 ```
 
