@@ -52,7 +52,7 @@ Community signup is double opt-in. The form needs a valid Turnstile token and ha
 | `CRON_SECRET` | Required, not `local-dev-cron-secret` | Reported, and `/api/cron/outbox` answers 503 to everyone. |
 | `SITE_URL` | Required, an https URL, not localhost | Reported. |
 | `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `EMAIL_FROM`, `FOLK_API_KEY` | Optional | Start-up warning only. Audience sync needs a full-access Resend key. |
-| `TRUSTED_PROXY_HOPS` | Optional; the default 1 matches the OpenShip edge | Not checked (see Data, below). |
+| `TRUSTED_PROXY_HOPS` | Optional; the default 1 matches the OpenShip edge alone. Production is behind Cloudflare too and sets 2 | Not checked (see Data, below). |
 
 How a problem surfaces, without ever showing a value:
 
