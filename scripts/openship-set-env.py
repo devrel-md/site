@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Copy named variables from an Infisical prod export into the devrel.md OpenShip project.
 
-Runs on the OpenShip box, reading `infisical export --env=prod --format=json` from stdin, so no
+Runs on the OpenShip control plane box (ubuntu-8gb-hel1), reading `infisical export --env=prod --format=json` from stdin, so no
 value is ever printed, put on a command line or written to disk. The exact command to run it from a
 Mac is in README.md, under Configuration.
 
@@ -17,7 +17,7 @@ import urllib.request
 
 API = os.environ.get("OPENSHIP_API", "http://127.0.0.1:4000")
 TOKEN_PATH = os.path.expanduser("~/.config/linkintel/openship.token")
-PROJECT = "proj_cYjTe6_4ea0e0wwR"
+PROJECT = "proj_VTooQP1XM66SYDDZ"
 
 # Matches how production stores them today; everything else is stored as a secret.
 NOT_SECRET = {"DAILY_SPEND_CAP_USD", "EMAIL_FROM", "EMAIL_REPLY_TO", "RESEND_AUDIENCE_ID",

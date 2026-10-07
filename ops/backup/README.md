@@ -1,6 +1,6 @@
 # Database backups
 
-`backup.sh` runs nightly at 03:17 UTC from the OpenShip host's crontab. It dumps the `devrelmd-prod-db` container with `pg_dump -Fc`, encrypts the stream with [age](https://github.com/FiloSottile/age) to a public key, and uploads the ciphertext to the R2 bucket `devrelmd-db-backups` using curl's AWS SigV4 signing. No plaintext dump touches disk. Any failure is logged to `~/devrelmd/backup.log` and emailed to hello@devrel.md.
+`backup.sh` runs nightly at 03:17 UTC from the crontab of ubuntu-4gb-fsn1, the server that hosts the database (ubuntu-8gb-hel1 until 7 Oct 2026). It dumps the `devrelmd-prod-db` container with `pg_dump -Fc`, encrypts the stream with [age](https://github.com/FiloSottile/age) to a public key, and uploads the ciphertext to the R2 bucket `devrelmd-db-backups` using curl's AWS SigV4 signing. No plaintext dump touches disk. Any failure is logged to `~/devrelmd/backup.log` and emailed to hello@devrel.md.
 
 - Objects: `daily/YYYY-MM-DD/devrelmd-<timestamp>.dump.age`, plus `monthly/YYYY-MM/...` on the 1st.
 - Retention: set R2 lifecycle rules on the bucket (daily 35 days, monthly 400 days). The backup keys are bucket-scoped and can't manage rules.
@@ -23,4 +23,4 @@ Restore into a throwaway container on the host, never on a laptop.
 4. `docker run -d --name devrelmd-restore --memory 256m -e POSTGRES_USER=devrelmd -e POSTGRES_DB=devrelmd -e POSTGRES_PASSWORD=<temp> postgres:16-alpine`, copy the dump in, then `pg_restore -U devrelmd -d devrelmd --no-owner /tmp/backup.dump`.
 5. Check the data, then remove the container and `shred -u` the dump.
 
-Last tested: 29 Sep 2026. A sentinel row inserted before the backup came back intact from R2.
+Last tested: 7 Oct 2026 on ubuntu-4gb-fsn1, after the move: the newest daily object restored into a throwaway container with the same row count as production in every table. Before that, 29 Sep 2026 on ubuntu-8gb-hel1 (a sentinel row came back intact from R2).

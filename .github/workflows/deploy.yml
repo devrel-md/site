@@ -19,7 +19,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Two jobs because the app's database and its OpenShip API live on different boxes. The
+  # database is on ubuntu-4gb-fsn1 (loopback only), so migrations run there. The OpenShip API is
+  # loopback only on ubuntu-8gb-hel1, so the deploy call runs there and targets the fsn1 server.
+  migrate:
     # For workflow_run, github.ref and github.sha point at the default branch head, not at the
     # commit CI ran on, so every use below takes the SHA from the CI run instead.
     if: >-
@@ -30,9 +33,12 @@ jobs:
           github.event.workflow_run.head_branch == 'main'
         )
       )
-    # The runner lives on the OpenShip box, the only place its API is reachable from.
-    runs-on: [self-hosted, openship, devrelmd]
-    timeout-minutes: 25
+    # The runner on the database host. It has no Node, so migrations run in a node:22-alpine
+    # container on the host network, which reaches the database's loopback port.
+    runs-on: [fsn1, devrelmd-db]
+    timeout-minutes: 10
+    outputs:
+      skip: ${{ steps.guard.outputs.skip }}
     env:
       DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
@@ -68,25 +74,39 @@ jobs:
           sparse-checkout: |
             package.json
             db
-            scripts/openship-deploy.py
           sparse-checkout-cone-mode: false
       # Migrations run before the app deploys, never after, so new tables and columns exist
       # before any code that uses them goes live. Keep migrations additive (no drops or renames
       # in the same change as the code) so the running version keeps working in between.
-      # Only pg is needed, so install that alone rather than the whole app.
+      # Only pg is needed, so install that alone rather than the whole app. The checkout is
+      # mounted read-only and copied inside the container, so nothing root-owned is left behind.
       - name: Apply pending database migrations
         if: steps.guard.outputs.skip != 'true'
         run: |
-          work="$RUNNER_TEMP/migrate"
-          rm -rf "$work" && mkdir -p "$work"
-          cp -r db "$work/"
-          cd "$work"
-          printf '{"type":"module","private":true}' > package.json
-          npm install --silent --no-audit --no-fund "pg@$(node -p "require('$GITHUB_WORKSPACE/package.json').dependencies.pg")"
-          set -a && . "$HOME/devrelmd/deploy.env" && set +a
-          node db/migrate.ts
+          docker run --rm --network host --env-file "$HOME/devrelmd/deploy.env" \
+            -v "$GITHUB_WORKSPACE:/src:ro" node:22-alpine sh -euc '
+              mkdir /work && cp -r /src/db /work/ && cd /work
+              printf "{\"type\":\"module\",\"private\":true}" > package.json
+              npm install --silent --no-audit --no-fund "pg@$(node -p "require(\"/src/package.json\").dependencies.pg")"
+              node db/migrate.ts'
+
+  deploy:
+    needs: migrate
+    if: needs.migrate.outputs.skip != 'true'
+    # The runner lives on the OpenShip control plane box, the only place its API is reachable from.
+    runs-on: [self-hosted, openship, devrelmd]
+    timeout-minutes: 25
+    env:
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/openship-deploy.py
+          sparse-checkout-cone-mode: false
       - name: Deploy and verify health
-        if: steps.guard.outputs.skip != 'true'
         env:
           SHA: ${{ env.DEPLOY_SHA }}
         run: python3 scripts/openship-deploy.py
