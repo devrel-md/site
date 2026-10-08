@@ -18,17 +18,28 @@ Only `/generate` (the interactive form) and its `GenerateForm` client component 
 
 ## Setup
 
-Prerequisites: Node 20+ and the [Infisical CLI](https://infisical.com/docs/cli/overview).
+Prerequisites: Node 20+ and a Postgres 16 database you can reach.
 
-There is no local Postgres and no Docker for local development: dev Postgres runs in a dedicated container (`devrelmd-db`, `postgres:16-alpine`) on the home server, reachable over the tailnet, and `DATABASE_URL` for it lives in Infisical. Don't try to run Postgres in Docker on your own machine for this project.
+Any Postgres 16 works. One way to get one locally:
+
+```bash
+docker run -d --name devrelmd-db -p 5432:5432 \
+  -e POSTGRES_USER=devrelmd -e POSTGRES_PASSWORD=devrelmd -e POSTGRES_DB=devrelmd \
+  postgres:16-alpine
+```
+
+Then:
 
 ```bash
 npm install
-infisical run --env=dev -- npm run migrate
-infisical run --env=dev -- npm run dev
+export DATABASE_URL=postgres://devrelmd:devrelmd@localhost:5432/devrelmd
+npm run migrate
+npm run dev
 ```
 
-The repo's `.infisical.json` binds it to the devrel.md Infisical project (EU, workspace `be37b6f4-0afa-4772-a1df-e01992b7dc9a`). It holds no secret itself. Secrets only ever come from that project, never from any other. Run every command that touches the database or calls OpenRouter/Resend/Folk through `infisical run --env=dev --`, from this directory or its parent (the CLI walks up to find `.infisical.json`).
+Keep the database name `devrelmd`: `npm run db:reset` refuses to run against any other name. Put any other local values in `.env.local`, which git ignores, and never commit a real secret.
+
+Maintainers run against a shared dev database instead, with every variable injected by the [Infisical CLI](https://infisical.com/docs/cli/overview) (`infisical run --env=dev -- npm run dev`). The `infisical run --env=...` commands elsewhere in this README and in `docs/` are that maintainer setup; with your own `DATABASE_URL` exported, run the same `npm` command directly.
 
 Everything also runs with `RESEND_API_KEY`, `FOLK_API_KEY` unset (both log instead of sending/pushing) and the Turnstile keys defaulted to Cloudflare's documented always-pass test pair (`TURNSTILE_SITE_KEY`, `TURNSTILE_SITE_SECRET`; `TURNSTILE_SECRET_KEY` also works, as a fallback for the brief's original naming). See `.env.example` for every variable.
 
@@ -36,7 +47,7 @@ Community signup is double opt-in. The form needs a valid Turnstile token and ha
 
 ### Synced content
 
-`content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request (run it after changing either source). They're plain files (not submodules) so every builder, OpenShip, Dokploy previews and a fresh clone, gets them without extra credentials.
+`content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request (run it after changing either source). They're plain files (not submodules) so every build, preview and fresh clone gets them without extra credentials.
 
 ## Configuration
 
@@ -57,17 +68,9 @@ How a problem surfaces, without ever showing a value:
 
 - Start-up (`instrumentation.ts`) logs `PRODUCTION CONFIGURATION INVALID` with each variable name and reason, plus a warning per unset optional integration.
 - `/healthz` keeps `status: "ok"` and the exact `build_sha` (it is a liveness check and touches neither the database nor any third party), and adds `config` (`ok`, `invalid`, or `unchecked` outside production) and `config_problems` (names only).
-- `scripts/openship-deploy.py` lets a verified deploy finish, then fails the job with an error annotation naming the variables, so the problem is visible without the site going down.
+- The production deploy lets a verified release finish, then fails with an error naming the variables, so the problem is visible without the site going down.
 
-To set or fix production variables, put the value in Infisical `prod` first, then copy it into OpenShip without printing it. From this directory on a Mac (after `infisical login`), naming each variable to copy:
-
-```bash
-infisical export --env=prod --format=json \
-  | ssh -o BatchMode=yes ubuntu-8gb-hel1.tailbb74a2.ts.net \
-      "python3 -c \"\$(echo $(base64 < scripts/openship-set-env.py | tr -d '\n') | base64 -d)\" RESEND_API_KEY"
-```
-
-`scripts/openship-set-env.py` runs on the box, reads the export from stdin, refuses empty values and development defaults, and prints only the names it set. Setting variables does not redeploy: rerun the Deploy workflow (or merge to `main`), then check that `/healthz` reports `config: "ok"`.
+Production variables are managed outside this repository, together with the deployment. Changing one does not redeploy: after the next deploy, check that `/healthz` reports `config: "ok"`.
 
 ## Architecture
 
@@ -118,7 +121,7 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Local end-to-end run
 
-`docs/local-e2e.md` preserves a historical generator run; its email unlock steps describe the retired flow. The current checklist is `docs/production-e2e.md`, to be run against production once deploys work again. Before sending a community broadcast, reconcile the active Postgres subscriptions with the Resend audience and the Folk group (`npm run resync-folk` fills in missing Folk contacts), especially if a sync call previously failed.
+`docs/local-e2e.md` preserves a historical generator run; its email unlock steps describe the retired flow. The current checklist is `docs/production-e2e.md`, run against production. Before sending a community broadcast, reconcile the active Postgres subscriptions with the Resend audience and the Folk group (`npm run resync-folk` fills in missing Folk contacts), especially if a sync call previously failed.
 
 ## Agent readiness
 
@@ -126,16 +129,16 @@ Tests cover content negotiation (browser vs. curl vs. `.md` routes, headers, inc
 
 ## Deployment
 
-Merging to `main` deploys to production automatically, but only after CI passes. Two workflows are involved:
+Production is self-hosted. Deployment lives in a separate private repository, so this repository has no deploy workflow, no deploy secrets and no access to production. Merging to `main` still deploys automatically, but only after CI passes:
 
 - `.github/workflows/ci.yml` runs on every pull request and on every push to `main`: `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`, on a GitHub-hosted runner with no secrets and no database. Its job is named `ci`, and that is the check a pull request must pass.
-- `.github/workflows/deploy.yml` starts when CI finishes on `main`, and only if it succeeded for a push. It deploys that same commit. It has two jobs. `migrate` runs on a self-hosted runner on ubuntu-4gb-fsn1, the server that hosts the app and its database. `deploy` then runs on a self-hosted runner on ubuntu-8gb-hel1, the OpenShip control plane, the only place OpenShip's API can be reached from. Deploys are serialised: a second one waits for the first rather than overlapping it. A deploy run first checks that its commit is still the tip of `main` and, if `main` has moved on, deploys nothing (an annotation names the newer commit, whose own run deploys it), so CI runs that finish out of order cannot put an older commit over a newer one. If CI fails on `main`, nothing deploys.
+- The private deployment picks up new commits on `main` and deploys a commit only once the `CI` workflow has passed on it. If CI fails on `main`, nothing deploys.
 
 For each deploy, in order:
 
-1. **Migrations first.** The fsn1 runner applies any pending `db/migrations/*.sql` to the production database with `db/migrate.ts`, inside a `node:22-alpine` container on the host network (the box has no Node). The connection string comes from a credentials file on the runner, not from GitHub secrets. If a migration fails, the job stops and nothing deploys.
-2. **Deploy.** `scripts/openship-deploy.py` sets `GIT_COMMIT_SHA` to the commit CI ran on, asks OpenShip to build and release exactly that commit, refuses to start while a previous build is still running, and waits for OpenShip to report it ready.
-3. **Health check.** The script then polls `/healthz` for up to two minutes until it returns `status: ok` with a `build_sha` equal to that commit. If it never does, the job fails.
+1. **Migrations first.** Any pending `db/migrations/*.sql` are applied to the production database with `db/migrate.ts`. If a migration fails, nothing deploys.
+2. **Deploy.** That exact commit is built with `GIT_COMMIT_SHA` set to it and released.
+3. **Health check.** The deploy then polls `/healthz` until it returns `status: ok` with a `build_sha` equal to that commit. If it never does, the deploy fails.
 
 A deploy is only finished when `/healthz` reports the commit you merged. Check it before telling anyone a change is live:
 
@@ -155,8 +158,7 @@ The production database is backed up nightly, encrypted, to object storage. `ops
 
 ### Rolling back
 
-The deploy workflow always deploys a single commit. Its manual trigger (`workflow_dispatch`) takes no inputs and only runs on `main`, so running it by hand redeploys the current head of `main`, not an earlier commit. It skips CI, so use it only for a commit that has already passed.
+Each deploy releases a single commit of `main`, so the way back is forward.
 
 - **Normal route:** open a pull request that reverts the bad change (`git revert`), merge it once `ci` passes, and let the usual deploy run. Then confirm `/healthz` reports the revert commit.
-- **Not an option:** re-running the `Deploy` run for an earlier commit. A re-run keeps the commit of the original run, so the head-of-`main` guard skips it and deploys nothing.
 - **The database is not rolled back.** Migrations only go forward, and additive migrations leave older code working against the newer schema. If data itself is damaged, restore from a backup as described in `ops/backup/README.md`.

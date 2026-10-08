@@ -1,4 +1,4 @@
-# Production image for devrel.md, built for OpenShip on the Hetzner box.
+# Production image for devrel.md.
 # Multi-stage build using Next.js standalone output.
 
 FROM node:22-alpine AS base
