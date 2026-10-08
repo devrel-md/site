@@ -92,3 +92,13 @@ export async function createResult(params: {
   );
   return rows[0]!;
 }
+
+/** Records that a cached result was served, for the launch metrics report. Never throws:
+ * a logging failure must not stop the cached result reaching the visitor. */
+export async function logCacheHit(resultId: string): Promise<void> {
+  try {
+    await query(`insert into cache_hits (result_id) values ($1)`, [resultId]);
+  } catch (err) {
+    console.error("logCacheHit failed", err);
+  }
+}

@@ -17,7 +17,8 @@
     "db:reset": "tsx db/reset.ts",
     "delete-lead": "tsx scripts/delete-lead.ts",
     "exclude-host": "tsx scripts/exclude-host.ts",
-    "resync-folk": "tsx scripts/resync-folk.ts"
+    "resync-folk": "tsx scripts/resync-folk.ts",
+    "launch-metrics": "tsx scripts/launch-metrics.ts"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",

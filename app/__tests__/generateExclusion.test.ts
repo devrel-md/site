@@ -19,7 +19,8 @@ vi.mock("@/lib/rateLimit", () => ({
   isRateLimited: async () => false,
   checkAndIncrementRateLimit: async () => {},
 }));
-vi.mock("@/lib/db", () => ({ query: vi.fn(), queryOne: vi.fn() }));
+const queryMock = vi.fn();
+vi.mock("@/lib/db", () => ({ query: (...args: unknown[]) => queryMock(...args), queryOne: vi.fn() }));
 
 import { POST } from "@/app/api/generate/route";
 
@@ -37,6 +38,7 @@ describe("generate route and excluded hosts", () => {
     applyRobotsRefusalMock.mockReset().mockResolvedValue(true);
     findCachedResultMock.mockReset().mockResolvedValue(undefined);
     generateMock.mockReset();
+    queryMock.mockReset().mockResolvedValue([]);
   });
 
   it("refuses an excluded host before the cache or the generator is touched", async () => {
@@ -69,6 +71,24 @@ describe("generate route and excluded hosts", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const response = await POST(post("https://acme.dev/docs"));
     expect(await response.text()).toContain("robots.txt");
+    spy.mockRestore();
+  });
+
+  it("records a cache hit for the launch metrics and serves the cached result", async () => {
+    findCachedResultMock.mockResolvedValue({ id: "abc123", markdown: "# Cached" });
+    const response = await POST(post("https://acme.dev/docs"));
+    const body = await response.text();
+    expect(body).toContain('"cached":true');
+    expect(queryMock).toHaveBeenCalledWith("insert into cache_hits (result_id) values ($1)", ["abc123"]);
+    expect(generateMock).not.toHaveBeenCalled();
+  });
+
+  it("still serves the cached result when recording the hit fails", async () => {
+    findCachedResultMock.mockResolvedValue({ id: "abc123", markdown: "# Cached" });
+    queryMock.mockRejectedValue(new Error("db down"));
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await POST(post("https://acme.dev/docs"));
+    expect(await response.text()).toContain("# Cached");
     spy.mockRestore();
   });
 });
