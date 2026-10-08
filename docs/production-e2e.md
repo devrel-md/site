@@ -51,7 +51,7 @@ In a private window with no cookies:
 
 ## 5. Tracked redirect
 
-The result page no longer links to `/go/audit` (since PR #15); the skill pages and email series do. Use the link directly so the click is easy to find:
+The result page no longer links to `/go/audit` (since PR #15); the skill pages do. Use the link directly so the click is easy to find:
 
 - [ ] Open https://devrel.md/go/audit?m=site&c=e2e-production in the browser. It lands on the live devrelbridge.com page with `utm_source=devrel.md&utm_medium=site&utm_campaign=e2e-production`.
 - [ ] `select slug, medium, campaign, created_at from clicks order by created_at desc limit 3;` shows the `audit` click with medium `site` and campaign `e2e-production`.

@@ -34,7 +34,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/db/migrations ./db/migrations
-COPY --from=builder /app/emails ./emails
 # content/spec and content/skills are read from disk at request time (see
 # lib/content.ts), not imported as JS modules, so Next's output file tracing
 # does not pick them up into .next/standalone on its own.

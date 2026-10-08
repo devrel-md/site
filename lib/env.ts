@@ -1,11 +1,6 @@
 // Central, typed access to configuration. Every variable has a safe local
 // default so the app runs with Resend, Folk and Turnstile unset, per the brief.
 
-function bool(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined || value === "") return fallback;
-  return value === "true" || value === "1";
-}
-
 function num(value: string | undefined, fallback: number): number {
   if (value === undefined || value === "") return fallback;
   const n = Number(value);
@@ -31,9 +26,7 @@ export const env = {
     "1x0000000000000000000000000000000AA",
   ipHashSalt: process.env.IP_HASH_SALT ?? "local-dev-salt",
   trustedProxyHops: num(process.env.TRUSTED_PROXY_HOPS, 1),
-  cronSecret: process.env.CRON_SECRET ?? "local-dev-cron-secret",
   dailySpendCapUsd: num(process.env.DAILY_SPEND_CAP_USD, 2.0),
-  seriesEnabled: bool(process.env.SERIES_ENABLED, false),
   gitCommitSha: process.env.GIT_COMMIT_SHA ?? "dev",
   siteUrl: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
 };

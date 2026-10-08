@@ -49,7 +49,6 @@ Community signup is double opt-in. The form needs a valid Turnstile token and ha
 | `TURNSTILE_SITE_KEY` | Required, not a Cloudflare test key | Reported; test tokens fail real verification. |
 | `TURNSTILE_SITE_SECRET` (or `TURNSTILE_SECRET_KEY`) | Required, not a Cloudflare test key | Reported, and every Turnstile check is refused (generator and community signup), so nothing can bypass the bot check. |
 | `IP_HASH_SALT` | Required, not `local-dev-salt` | Reported. |
-| `CRON_SECRET` | Required, not `local-dev-cron-secret` | Reported, and `/api/cron/outbox` answers 503 to everyone. |
 | `SITE_URL` | Required, an https URL, not localhost | Reported. |
 | `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `EMAIL_FROM`, `FOLK_API_KEY` | Optional | Start-up warning only. Audience sync needs a full-access Resend key. |
 | `TRUSTED_PROXY_HOPS` | Optional; the default 1 matches the OpenShip edge alone. Production is behind Cloudflare too and sets 2 | Not checked (see Data, below). |
@@ -78,8 +77,6 @@ app/                    Route Handlers (content pages, the generator API, /go, /
 lib/                    Everything else: content loading, Markdown, negotiation,
                          the SSRF-safe fetcher, the generator's pipeline, email, Folk
 db/migrations/          Plain numbered SQL, applied by db/migrate.ts (no ORM)
-emails/                 Markdown + frontmatter templates from the retired email flow
-                         (result email, failing-gate series). Nothing schedules them now
 content/spec, content/skills   Synced copies of the spec and the skill library
 scripts/bakeoff/        The prompt/model bake-off this generator's prompt and
                          quality gate are ported from (kept for reference)
