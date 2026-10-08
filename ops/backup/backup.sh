@@ -36,7 +36,9 @@ alert() {
 fail() { log "FAIL $1"; alert "$1"; exit 1; }
 trap 'fail "unexpected error on line $LINENO"' ERR
 
-# Sourced after the trap, so a missing or unreadable env file is logged too.
+# Checked explicitly: bash exits without running the ERR trap when `.` cannot
+# find its file, so a missing env file would otherwise go unlogged.
+[ -r "$ENV_FILE" ] || fail "cannot read $ENV_FILE"
 set -a; . "$ENV_FILE"; set +a
 
 for v in R2_BACKUP_ACCESS_KEY_ID R2_BACKUP_SECRET_ACCESS_KEY R2_BACKUP_ENDPOINT R2_BACKUP_BUCKET AGE_RECIPIENT; do

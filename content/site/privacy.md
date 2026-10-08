@@ -6,7 +6,7 @@ This is a short, plain notice, not a legal document dressed up as one.
 
 - **The generator.** The URL you submit, the generated DEVREL.md file, its funnel gates, which model produced it, and what it cost to generate. We store your IP address only as a one-way hash (`sha256(ip + salt)`), never the address itself, and only to enforce a daily rate limit and to log the tracked link clicks below.
 - **Community updates.** You can read, copy and download a result without an email address. If you separately choose to join community updates, we store your email address, when you asked, when you confirmed, a one-off confirmation token, an unsubscribe token and when you unsubscribed. The form asks for no company, role or team size. It uses a Cloudflare Turnstile check, and your IP address is stored only as the same one-way hash, to enforce a daily limit on signups.
-- **The retired unlock form.** An earlier version of the site asked for an email address, company, role and team size before you could copy or download a result. We no longer collect any of this, nothing uses those records, and we will delete them. You can ask hello@devrel.md to delete your record now.
+- **The retired unlock form.** An earlier version of the site asked for an email address, company, role and team size before you could copy or download a result. We no longer collect any of this, and the records it created were deleted on 8 Oct 2026.
 - **Tracked links.** When you follow a `/go/...` link (for example, to book a review), we log the slug, the campaign, a timestamp, the hashed IP and whether the request looked automated (worked out from its headers at the time, which we don't keep), so we know which content leads to a conversation.
 
 ## Generated results and search engines

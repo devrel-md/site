@@ -18,7 +18,7 @@ async function main() {
 
   const pool = new Pool({ connectionString: databaseUrl });
   await pool.query(`
-    drop table if exists community_subscribers, outbox, clicks, rate_limits, attempts, leads, results, schema_migrations cascade;
+    drop table if exists cache_hits, excluded_hosts, community_subscribers, outbox, clicks, rate_limits, attempts, leads, results, schema_migrations cascade;
   `);
   await pool.end();
   console.log("Dropped devrel.md tables. Run npm run migrate to recreate them.");
