@@ -35,3 +35,8 @@ export function isConfigured(key: "resend" | "folk"): boolean {
   if (key === "resend") return env.resendApiKey.length > 0;
   return env.folkApiKey.length > 0;
 }
+
+// The shared stylesheet, versioned by build. /styles.css is not hashed, so
+// without this a browser can pair new HTML with an old cached stylesheet after
+// a deploy (new markup, no rules for it).
+export const STYLESHEET_HREF = `/styles.css?v=${encodeURIComponent(env.gitCommitSha)}`;

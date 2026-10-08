@@ -136,6 +136,15 @@ describe("icons and social tags", () => {
     expect(html).toMatch(/<svg class="mark"[^>]*aria-hidden="true"/);
   });
 
+  it("links the stylesheet versioned by build, so a deploy never pairs new HTML with a cached old stylesheet", async () => {
+    const { GET } = await import("@/app/route");
+    const { STYLESHEET_HREF } = await import("@/lib/env");
+    const html = await (await GET(get("https://devrel.md/"))).text();
+    expect(STYLESHEET_HREF).toMatch(/^\/styles\.css\?v=.+/);
+    expect(html).toContain(`<link rel="stylesheet" href="${STYLESHEET_HREF}">`);
+    expect(html).not.toContain('href="/styles.css"');
+  });
+
   it("/generate (React path) has icons and og:image too", async () => {
     const { metadata } = await import("@/app/layout");
     expect(metadata.icons).toMatchObject({ apple: "/apple-icon.png" });
