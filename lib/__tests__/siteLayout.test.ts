@@ -41,6 +41,7 @@ describe("siteHeaderHtml", () => {
     expect(html).toMatch(
       /<a class="github-link" href="https:\/\/github\.com\/devrel-md" aria-label="DEVREL\.md on GitHub"[^>]*><svg class="github-mark"[^>]*aria-hidden="true"[^>]*>.*<\/svg><\/a>/
     );
+    expect(html).toMatch(/<svg class="github-mark"[^>]*width="16" height="16"/);
     expect(html.indexOf("github-link")).toBeLessThan(html.indexOf("theme-toggle"));
     expect(html).not.toMatch(/<a class="github-link"[^>]*(target|rel)=/);
   });

@@ -1,5 +1,5 @@
 import { escapeHtml } from "@/lib/html";
-import { env } from "@/lib/env";
+import { env, STYLESHEET_HREF } from "@/lib/env";
 import { siteHeaderHtml, siteFooterHtml, headMetaHtml, themeScript, toggleScript } from "@/lib/siteLayout";
 
 export interface PageOptions {
@@ -86,7 +86,7 @@ export function renderPage(options: PageOptions): string {
 <meta name="description" content="${escapeHtml(description)}">
 ${noindex ? '<meta name="robots" content="noindex">\n' : ""}<link rel="canonical" href="${escapeHtml(canonical)}">
 ${headMetaHtml({ siteUrl: env.siteUrl, title, description, canonical })}
-<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="${STYLESHEET_HREF}">
 <meta name="color-scheme" content="light dark">
 </head>
 <body${bodyAttr}>

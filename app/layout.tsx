@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { env } from "@/lib/env";
+import { env, STYLESHEET_HREF } from "@/lib/env";
 import { OG_IMAGE_PATH, themeScript } from "@/lib/siteLayout";
 
 // Rendered per request so metadataBase (and so the absolute og:image URL) uses the
@@ -37,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
         {/* eslint-disable-next-line @next/next/no-css-tags -- shared, unhashed stylesheet also served
-            directly to the hand-built HTML routes; it must keep the same /styles.css URL everywhere. */}
-        <link rel="stylesheet" href="/styles.css" />
+            directly to the hand-built HTML routes; it must use the same STYLESHEET_HREF everywhere. */}
+        <link rel="stylesheet" href={STYLESHEET_HREF} />
         <meta name="color-scheme" content="light dark" />
       </head>
       <body>{children}</body>
