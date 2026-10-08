@@ -6,3 +6,5 @@ node_modules/
 *.tsbuildinfo
 coverage/
 scripts/bakeoff/out/
+__pycache__/
+*.pyc

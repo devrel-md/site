@@ -7,7 +7,7 @@ This document records the earlier email unlock flow. The current result page all
 Date: 2026-09-28
 Branch: `build/v1`, commit `0981261` (the app was rebuilt after this to fix a small Dockerfile/robots-cache issue; the run below is otherwise representative of the current build)
 
-There is no local Postgres for this project. Dev Postgres is a dedicated `postgres:16-alpine` container (`devrelmd-db`) on the home server (`porg`), reachable over the tailnet, with `DATABASE_URL` supplied by the devrel.md Infisical project (dev environment). No Docker was used or started on this machine, per the standing rule.
+The run used the maintainers' shared dev database (`postgres:16-alpine`), with `DATABASE_URL` supplied by the project's Infisical dev environment.
 
 ## Setup
 

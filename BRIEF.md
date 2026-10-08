@@ -5,7 +5,8 @@
 > - The 5-email series. It is retired for good: its templates, the outbox worker, `/api/cron/outbox`, `CRON_SECRET` and `SERIES_ENABLED` were removed, and the `leads` and `outbox` tables dropped (issue #29).
 > - The spec as the home page. `/` is now a short introduction and the spec lives at `/spec`.
 > - Local development with `docker compose`. Development uses a shared dev database through Infisical.
-> - Deployment being out of scope. The site deploys automatically from `main`.
+> - Deployment being out of scope. The site deploys automatically from `main`, from a separate private repository.
+> - Infrastructure details in the original brief have been removed from this copy.
 >
 > For current behaviour, setup and deployment, read `README.md`.
 
@@ -25,7 +26,7 @@ Audience: developer-facing B2B companies (APIs, SDKs, AI tools, infrastructure).
 - Postgres via `pg` with plain SQL migrations in `db/migrations/NNN_name.sql` and a tiny migration runner. No ORM.
 - Local dev: `docker compose` with `postgres:16-alpine`.
 - The spec and skills come from the private repos `devrel-md/spec` and `devrel-md/skills`, synced into the site as generated copies at `content/spec` and `content/skills`. The site reads them at build time. Never copy their content by hand.
-- Deployment target: OpenShip on the Hetzner box, behind Cloudflare. Build a production `Dockerfile` (Next.js standalone output). Don't write deploy workflows or touch the server; that's a later, approved step.
+- Deployment target: self-hosted, behind Cloudflare. Build a production `Dockerfile` (Next.js standalone output). Don't write deploy workflows or touch the server; that's a later, approved step.
 - UK English in all copy. No em dashes, en dashes or double hyphens anywhere: copy, code comments, commit messages. Commit messages and PRs carry no AI attribution lines.
 
 ## Pages and serving
@@ -105,7 +106,7 @@ Tables, at least: `results` (id, url, normalised_url, markdown, gates jsonb, mod
 
 ## Secrets and config
 
-All secrets come from the devrel.md Infisical project (EU, workspace `be37b6f4-0afa-4772-a1df-e01992b7dc9a`), never from any other project. Run locally with `infisical run --env=dev -- npm run dev`. Provide `.env.example` listing every variable with a comment: `DATABASE_URL`, `OPENROUTER_API_KEY`, `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `EMAIL_FROM`, `FOLK_API_KEY`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `IP_HASH_SALT`, `CRON_SECRET`, `DAILY_SPEND_CAP_USD`, `SERIES_ENABLED`, `GIT_COMMIT_SHA`, `SITE_URL`. Everything must run locally with the Turnstile test keys and with Resend and Folk unset (log instead of send).
+All secrets come from the devrel.md Infisical project, never from any other project. Run locally with `infisical run --env=dev -- npm run dev`. Provide `.env.example` listing every variable with a comment: `DATABASE_URL`, `OPENROUTER_API_KEY`, `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `EMAIL_FROM`, `FOLK_API_KEY`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `IP_HASH_SALT`, `CRON_SECRET`, `DAILY_SPEND_CAP_USD`, `SERIES_ENABLED`, `GIT_COMMIT_SHA`, `SITE_URL`. Everything must run locally with the Turnstile test keys and with Resend and Folk unset (log instead of send).
 
 ## Done means
 

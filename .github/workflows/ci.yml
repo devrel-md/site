@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 # Pull requests cancel their own superseded runs. Pushes to main are keyed by commit and never
-# cancelled, because the deploy workflow waits for this run to finish on that exact commit.
+# cancelled, because production deploys a commit only once this run has passed on it.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

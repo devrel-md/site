@@ -1,24 +1,17 @@
 # Production end-to-end run
 
-**Status: passed, 7 and 8 Oct 2026**, run by Marcos against ubuntu-4gb-fsn1 behind Cloudflare (commits `574ef38` to `39c5585`). Every section passed; see Results. This is the checklist for issue #24.
+**Status: passed, 7 and 8 Oct 2026**, run by Marcos against production behind Cloudflare (commits `574ef38` to `39c5585`). Every section passed; see Results. This is the checklist for issue #24.
 
 `docs/local-e2e.md` is the earlier, local-only run (28 Sep, retired email unlock flow) and is kept for history only.
 
 ## Before you start
 
-- [ ] Deploys work: the latest Deploy workflow run on `main` is green.
+- [ ] Deploys work: the latest deploy of `main` succeeded.
 - [ ] `curl -s https://devrel.md/healthz` shows the commit you expect, `"status":"ok"`, `"config":"ok"` and `"config_problems":[]`. If `config` is `invalid`, stop and fix the named variables (README, Configuration).
 - [ ] Launch budget decided: `DAILY_SPEND_CAP_USD` (currently 2.00, about 600 paid runs at 0.003 USD each) and the production OpenRouter key's own limit (currently 5 USD, resetting daily) agree with each other.
 - [ ] Use a real inbox you control for the community steps, for example a `+e2e` alias.
 
-Read-only database checks below run on the box, against the production database container:
-
-```bash
-ssh -o BatchMode=yes ubuntu-4gb-fsn1.tailbb74a2.ts.net
-docker exec -i devrelmd-prod-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
-```
-
-Only run `select` statements. Do not edit rows by hand.
+Read-only database checks below run in `psql` against the production database, from wherever a maintainer can reach it. Only run `select` statements. Do not edit rows by hand.
 
 ## 1. One real generation, in a browser
 
@@ -63,9 +56,9 @@ The result page no longer links to `/go/audit` (since PR #15); the skill pages d
 
 ## Results
 
-7 Oct 2026, production on ubuntu-4gb-fsn1 behind Cloudflare, commit `574ef38`. Checked by Marcos in a browser and by queries on the box.
+7 Oct 2026, production behind Cloudflare, commit `574ef38`. Checked by Marcos in a browser and by read-only database queries.
 
-- Before you start: Deploy workflow green (migrate on fsn1, deploy from hel1, "Deployed and health-verified 574ef3834d71"); `/healthz` `config: ok`. Launch budget decided by Marcos: keep `DAILY_SPEND_CAP_USD=2.00`; the OpenRouter key's 5 USD daily limit is the hard cap.
+- Before you start: deploy green ("Deployed and health-verified 574ef3834d71"); `/healthz` `config: ok`. Launch budget decided by Marcos: keep `DAILY_SPEND_CAP_USD=2.00`; the OpenRouter key's 5 USD daily limit is the hard cap.
 - 1. Generation: passed. Result `bf91b25fc551e7e1` for `https://docs.replay.io/basics/replay-qa/overview`. Attempts: `nvidia/nemotron-3-ultra-550b-a55b:free` timed out, then `openai/gpt-6-luna` succeeded at 0.003064 USD. The rate-limit row is keyed to the visitor's real address (no "no trustworthy client address" warnings in the logs).
 - 2. Result page: `/r/bf91b25fc551e7e1` 200; `.md?download=1` sends `Content-Disposition: attachment; filename="DEVREL.md"`; `.md` returns the raw Markdown. Copy not separately recorded.
 - 3. 24 hour cache: passed. A second generation for the same URL at 14:51:34 returned the existing result and added no attempt row.
