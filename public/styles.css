@@ -111,8 +111,31 @@ a {
   color: var(--accent);
 }
 
-.spacer {
-  flex: 1;
+.header-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem;
+  color: var(--fg);
+}
+
+.github-link:hover {
+  color: var(--accent);
+}
+
+.github-link .github-mark {
+  height: 1.05rem;
+  width: 1.05rem;
+  flex: none;
 }
 
 .theme-toggle {
