@@ -72,7 +72,21 @@ A valid file (this is the real response for the [full example](/example)) return
 
 ## 4. Commit it and put it to work
 
-Commit `DEVREL.md` next to `README.md` and `AGENTS.md`. From then on, any agent that reads your repo starts from the same facts, and the [free skills](/skills) read it before they do anything. A good first one is `quickstart-friction-check`, which walks your own quickstart the way a new developer would.
+Commit `DEVREL.md` next to `README.md` and `AGENTS.md`.
+
+Committing the file doesn't make an agent read it. Add this to the instruction file your agent already reads at the start of a session, such as `AGENTS.md` or `CLAUDE.md`:
+
+```markdown
+## Developer relations
+
+Before any developer relations work (docs, quickstarts, tutorials,
+launch posts, developer marketing), read [DEVREL.md](DEVREL.md).
+It says who our developers are, what their first success looks like
+and which stage gates are failing. Treat its numbers as the source
+of truth. Where it says `unknown`, don't invent a figure.
+```
+
+From then on, those agents start from the same facts. The [free skills](/skills) don't need the instruction: each one looks for DEVREL.md before it asks you anything. A good first one is `quickstart-friction-check`, which walks your own quickstart the way a new developer would.
 
 ## Testing safely
 

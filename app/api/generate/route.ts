@@ -1,7 +1,7 @@
 import { verifyTurnstile } from "@/lib/turnstile";
 import { checkAndIncrementRateLimit, isRateLimited } from "@/lib/rateLimit";
 import { clientIp, hashIp } from "@/lib/hash";
-import { normaliseUrl, findCachedResult, createResult } from "@/lib/results";
+import { normaliseUrl, findCachedResult, createResult, logCacheHit } from "@/lib/results";
 import { extractFunnelGates } from "@/lib/funnelGates";
 import { generateDevrelMd, type NoSourcesReason } from "@/lib/generate";
 import { SKILLS_INSTALL_NOTE } from "@/lib/skillsPage";
@@ -97,6 +97,7 @@ export async function POST(request: Request): Promise<Response> {
   const normalised = normaliseUrl(rawUrl);
   const cached = await findCachedResult(normalised);
   if (cached) {
+    await logCacheHit(cached.id);
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
         const encoder = new TextEncoder();

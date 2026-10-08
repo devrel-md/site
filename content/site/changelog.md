@@ -4,6 +4,9 @@ Dated, newest first.
 
 ## 2026-10-08
 
+- The home page and quickstart no longer say agents pick up DEVREL.md on their own. They now give an instruction to add to `AGENTS.md` or `CLAUDE.md` so your agent reads it before developer relations work, and say that only the devrel.md skills look for the file automatically.
+- The home page example is labelled as an excerpt and links to the complete example. The "With DEVREL.md" quickstart opening now uses the example's measured 22 minutes instead of its 5-minute target, and no longer lists version requirements the file doesn't state.
+- The home page has a Contribute section: where to report problems or propose changes, who maintains DEVREL.md, and links to AGENTS.md and Corey Haines' marketing skills as related, independent work.
 - The privacy notice now says what we still hold from the retired unlock form: nothing uses it any more and it will be deleted. The never-launched email series has been removed for good.
 
 ## 2026-10-04
