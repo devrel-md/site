@@ -2,8 +2,6 @@
 
 **Status: passed, 7 and 8 Oct 2026**, run by Marcos against production behind Cloudflare (commits `574ef38` to `39c5585`). Every section passed; see Results. This is the checklist for issue #24.
 
-`docs/local-e2e.md` is the earlier, local-only run (28 Sep, retired email unlock flow) and is kept for history only.
-
 ## Before you start
 
 - [ ] Deploys work: the latest deploy of `main` succeeded.
@@ -46,7 +44,7 @@ In a private window with no cookies:
 
 The result page no longer links to `/go/audit` (since PR #15); the skill pages do. Use the link directly so the click is easy to find:
 
-- [ ] Open https://devrel.md/go/audit?m=site&c=e2e-production in the browser. It lands on the live devrelbridge.com page with `utm_source=devrel.md&utm_medium=site&utm_campaign=e2e-production`.
+- [ ] Open https://devrel.md/go/audit?m=site&c=e2e-production in the browser. It lands on the `audit` destination page with `utm_source=devrel.md&utm_medium=site&utm_campaign=e2e-production`.
 - [ ] `select slug, medium, campaign, created_at from clicks order by created_at desc limit 3;` shows the `audit` click with medium `site` and campaign `e2e-production`.
 
 ## 6. Clean up
