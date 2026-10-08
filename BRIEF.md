@@ -11,7 +11,7 @@
 
 # devrel.md site: build brief
 
-Owner: Marcos Placona. Status: approved to build locally on 2026-09-28. Deployment is a separate, approved step.
+Owner: Marcos Placona. Sponsor: DevRel Bridge. Status: approved to build locally on 2026-09-28. Deployment is a separate, approved step.
 
 ## Why this exists
 
@@ -55,7 +55,7 @@ Content negotiation for every content page:
 
 The site must score at least 95 on our own `agent-readiness-check` (`content/skills/skills/agent-readiness-check/references/rubric.md`). In particular: every h2 and h3 has a stable id, code blocks declare a language, pages render server-side, and there's a dated changelog at `/changelog`.
 
-Design: it should read like a well-typeset Markdown document, calm and fast, with a narrow text column, not a marketing site. A small header (DEVREL.md wordmark; Spec, Skills, Generate links) and a footer: "Created and maintained by Marcos Placona. Framework from How to Build Developer Ecosystems by Amir Shevat and Marcos Placona." Light and dark themes. Mobile first. No stock illustrations, no gradients, no emoji.
+Design: it should read like a well-typeset Markdown document, calm and fast, with a narrow text column, not a marketing site. A small header (DEVREL.md wordmark; Spec, Skills, Generate links) and a footer: "Created and maintained by Marcos Placona, DevRel Bridge. Framework from How to Build Developer Ecosystems by Amir Shevat and Marcos Placona." Light and dark themes. Mobile first. No stock illustrations, no gradients, no emoji.
 
 ## Tracked redirects: `/go/[slug]`
 
