@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "migrate": "tsx db/migrate.ts",
     "db:reset": "tsx db/reset.ts",
-    "delete-lead": "tsx scripts/delete-lead.ts",
+    "delete-subscriber": "tsx scripts/delete-subscriber.ts",
     "exclude-host": "tsx scripts/exclude-host.ts",
     "resync-folk": "tsx scripts/resync-folk.ts",
     "launch-metrics": "tsx scripts/launch-metrics.ts"

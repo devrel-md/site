@@ -58,7 +58,7 @@ The result page no longer links to `/go/audit` (since PR #15); the skill pages d
 
 ## 6. Clean up
 
-- [ ] Either leave the test subscriber unsubscribed and say so here, or remove it with `infisical run --env=prod -- npm run delete-lead <address>` from a machine that can reach the production database.
+- [ ] Either leave the test subscriber unsubscribed and say so here, or remove it with `infisical run --env=prod -- npm run delete-subscriber -- <address>` from a machine that can reach the production database.
 - [ ] Record total OpenRouter spend for the run:
 
 ## Results

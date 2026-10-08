@@ -15,22 +15,29 @@ AGE="${AGE:-$HOME/.local/bin/age}"
 CONTAINER="${CONTAINER:-devrelmd-prod-db}"
 MIN_BYTES="${MIN_BYTES:-1024}"
 
-set -a; . "$ENV_FILE"; set +a
-
 log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
 
 alert() {
-  [ -n "${RESEND_API_KEY:-}" ] || return 0
-  local body
+  if [ -z "${RESEND_API_KEY:-}" ]; then log "ALERT NOT SENT: RESEND_API_KEY is not set"; return 0; fi
+  local body status
   body=$(python3 -c 'import json,sys; print(json.dumps({"from": sys.argv[1], "to": [sys.argv[2]], "subject": "devrel.md database backup FAILED", "text": sys.argv[3]}))' \
     "${ALERT_FROM:-DEVREL.md <hello@mail.devrel.md>}" "${ALERT_TO:-hello@devrel.md}" \
     "The nightly devrel.md database backup failed on $(hostname) at $(date -u +%FT%TZ): $1. See ~/devrelmd/backup.log.")
-  curl -s -m 20 -o /dev/null https://api.resend.com/emails \
-    -H "Authorization: Bearer ${RESEND_API_KEY}" -H "Content-Type: application/json" -d "$body" || true
+  # Resend's answer is checked and logged, so a rejected alert (bad key, unverified
+  # sender) shows up in the log instead of failing silently.
+  status=$(curl -s -m 20 -o /dev/null -w '%{http_code}' https://api.resend.com/emails \
+    -H "Authorization: Bearer ${RESEND_API_KEY}" -H "Content-Type: application/json" -d "$body") || true
+  case "$status" in
+    2??) log "ALERT SENT to ${ALERT_TO:-hello@devrel.md}" ;;
+    *) log "ALERT NOT SENT: Resend answered HTTP ${status:-000}" ;;
+  esac
 }
 
 fail() { log "FAIL $1"; alert "$1"; exit 1; }
 trap 'fail "unexpected error on line $LINENO"' ERR
+
+# Sourced after the trap, so a missing or unreadable env file is logged too.
+set -a; . "$ENV_FILE"; set +a
 
 for v in R2_BACKUP_ACCESS_KEY_ID R2_BACKUP_SECRET_ACCESS_KEY R2_BACKUP_ENDPOINT R2_BACKUP_BUCKET AGE_RECIPIENT; do
   [ -n "${!v:-}" ] || fail "missing $v in $ENV_FILE"
