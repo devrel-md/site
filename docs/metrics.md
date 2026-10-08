@@ -8,8 +8,6 @@ How the 90-day launch targets are measured now that results are free. Every numb
 | --- | --- | --- |
 | Generator runs | 1,000 | `npm run launch-metrics`: generations, fresh plus cached |
 | Public repositories with a DEVREL.md | 50 | GitHub code search, see below |
-| Qualified discovery calls | 15 | devrelbridge.com bookings, attributed by `utm_*` |
-| Deliverables sold | 3 | Sales records, outside this repository |
 
 ### Replacing the 30% email capture rate
 
@@ -17,12 +15,12 @@ The launch plan's 30% email capture rate measured how many people gave an addres
 
 - **Community signups per 100 fresh generations.** Confirmed signups divided by fresh generations over the same days. Confirmed only: a pending signup is not consent. There is no target until we have a month of data; watch the trend.
 - **Net community growth.** Confirmed signups minus unsubscribes over the period.
-- **`/go` clicks per 100 generations, by slug, medium and campaign.** Bot clicks excluded. This shows which surfaces lead to a conversation with DevRel Bridge.
+- **`/go` clicks per 100 generations, by slug, medium and campaign.** Bot clicks excluded. This shows which surfaces send people on to the `/go` destinations.
 
 Measures the issue suggested that the site cannot report today:
 
 - **Results copied or downloaded.** Copy and Download happen in the browser and are not recorded. Recording them would mean adding client-side events, which is part of the open analytics decision.
-- **`/go` clicks per result.** Result pages carry no `/go` links, and a click does not record which result it came from. The lead token that used to tie a click to a lead was retired with the lead form, so a `/go/audit` click cannot be tied to a company either.
+- **`/go` clicks per result.** Result pages carry no `/go` links, and a click does not record which result it came from. Clicks carry no identifier beyond the hashed IP.
 
 ## Running the report
 
@@ -75,7 +73,3 @@ gh search code --filename DEVREL.md --limit 1000 --json repository,path \
 gh search code "Generated with devrel.md" --filename DEVREL.md --limit 1000 --json repository,path \
   --jq '[.[] | select(.path | test("(^|/)DEVREL\\.md$")) | .repository.nameWithOwner] | unique | length'
 ```
-
-## Attribution of discovery calls
-
-Every `/go` redirect appends `utm_source=devrel.md`, `utm_medium` and, when set, `utm_campaign` to the devrelbridge.com URL (see `lib/goRedirect.ts`). Attributing a booked call depends on devrelbridge.com keeping those values with the booking, which is outside this repository.
