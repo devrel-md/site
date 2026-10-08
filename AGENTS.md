@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Standing instructions for any coding agent working in this repo. `README.md` explains how the site works and how it deploys; `BRIEF.md` is the original build brief and is partly superseded, so trust the README and the code over it.
+Standing instructions for any coding agent working in this repo. `README.md` explains how the site works and how it deploys; trust it and the code.
 
 ## Every pull request
 
