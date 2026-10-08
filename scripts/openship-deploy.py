@@ -97,7 +97,9 @@ def verify_health(sha: str) -> dict:
     while time.monotonic() < deadline:
         try:
             request = urllib.request.Request(
-                f"{HEALTH_URL}?revision={sha}", headers={"Cache-Control": "no-cache"})
+                f"{HEALTH_URL}?revision={sha}",
+                # Our own user agent: Cloudflare's Browser Integrity Check rejects Python's default.
+                headers={"Cache-Control": "no-cache", "User-Agent": "devrelmd-deploy/1.0"})
             with urllib.request.urlopen(request, timeout=15) as response:
                 health = json.load(response)
             if health.get("status") == "ok" and health.get("build_sha") == sha:

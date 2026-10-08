@@ -1,6 +1,6 @@
 # Production end-to-end run
 
-**Status: NOT YET RUN.** This is the checklist for issue #24. It cannot run until production deploys work again (OpenShip's GitHub clone token is invalid, so PR #15 and later merges have not reached devrel.md). Fill in each result as you go, then change the status line to the date, the commit `/healthz` reported and who ran it.
+**Status: partly run on 7 Oct 2026** by Marcos, against ubuntu-4gb-fsn1, `/healthz` commit `574ef38`. Generation, result page, download, confirmation email and rate limiting passed. Not yet exercised: the 24 hour cache, the full opt-in and unsubscribe sequence with a new address, and the `/go/audit` e2e click. See Results. This is the checklist for issue #24.
 
 `docs/local-e2e.md` is the earlier, local-only run (28 Sep, retired email unlock flow) and is kept for history only.
 
@@ -63,4 +63,14 @@ The result page no longer links to `/go/audit` (since PR #15); the skill pages a
 
 ## Results
 
-Not yet run.
+7 Oct 2026, production on ubuntu-4gb-fsn1 behind Cloudflare, commit `574ef38`. Checked by Marcos in a browser and by queries on the box.
+
+- Before you start: Deploy workflow green (migrate on fsn1, deploy from hel1, "Deployed and health-verified 574ef3834d71"); `/healthz` `config: ok`. Launch budget decided by Marcos: keep `DAILY_SPEND_CAP_USD=2.00`; the OpenRouter key's 5 USD daily limit is the hard cap.
+- 1. Generation: passed. Result `bf91b25fc551e7e1` for `https://docs.replay.io/basics/replay-qa/overview`. Attempts: `nvidia/nemotron-3-ultra-550b-a55b:free` timed out, then `openai/gpt-6-luna` succeeded at 0.003064 USD. The rate-limit row is keyed to the visitor's real address (no "no trustworthy client address" warnings in the logs).
+- 2. Result page: `/r/bf91b25fc551e7e1` 200; `.md?download=1` sends `Content-Disposition: attachment; filename="DEVREL.md"`; `.md` returns the raw Markdown. Copy not separately recorded.
+- 3. 24 hour cache: not exercised.
+- 4. Community: Marcos subscribed with an address that was already confirmed (4 Oct), and the email arrived. The row stayed confirmed and in Folk. The pending-then-confirmed sequence, Resend audience, Folk group and unsubscribe steps still need a new address.
+- 5. Tracked redirect: `/go/audit?m=site&c=e2e-production` not exercised. Found instead: the home page records `/go/book` clicks in pairs (`home` and `home-faq`) within the same second on each page load, which looks like link prefetching hitting the redirect route. That would inflate click counts; worth checking before relying on click metrics (#27).
+- 6. Clean up: no test subscriber added. OpenRouter spend for the run: 0.003064 USD.
+
+Behind Cloudflare since 7 Oct: production runs with `TRUSTED_PROXY_HOPS=2`. A validate request through Cloudflare with a forged `X-Forwarded-For: 1.2.3.4, 5.6.7.8` landed in the visitor's real bucket.
