@@ -24,3 +24,13 @@ Restore into a throwaway container on the host, never on a laptop.
 5. Check the data, then remove the container and `shred -u` the dump.
 
 Last tested: 7 Oct 2026 on ubuntu-4gb-fsn1, after the move: the newest daily object restored into a throwaway container with the same row count as production in every table. Before that, 29 Sep 2026 on ubuntu-8gb-hel1 (a sentinel row came back intact from R2).
+
+## Failure alert
+
+Every alert attempt is logged with Resend's answer: `ALERT SENT to …` or `ALERT NOT SENT: …`. To test without touching the real log or uploading anything, force a failure with a container that does not exist:
+
+```
+ENV_FILE=~/devrelmd/backup.env LOG=/tmp/backup-failtest.log CONTAINER=devrelmd-does-not-exist ~/devrelmd/backup.sh; cat /tmp/backup-failtest.log; rm /tmp/backup-failtest.log
+```
+
+Alert last tested: 8 Oct 2026 on ubuntu-4gb-fsn1. The forced failure was logged and Resend reported the email to hello@devrel.md as delivered.

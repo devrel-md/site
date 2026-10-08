@@ -23,33 +23,21 @@ describe("unsubscribeByToken", () => {
     expect(queryMock).not.toHaveBeenCalled();
   });
 
-  it("reports not found for a token matching no lead", async () => {
+  it("reports not found for a token matching no subscriber", async () => {
     const result = await unsubscribeByToken("nope");
     expect(result).toEqual({ found: false, alreadyUnsubscribed: false });
+    expect(queryMock).toHaveBeenCalledTimes(1);
   });
 
-  it("unsubscribes a legacy lead without touching the retired outbox", async () => {
-    queryMock
-      .mockResolvedValueOnce([]) // no community subscriber
-      .mockResolvedValueOnce([{ id: "lead-1", unsubscribed_at: null }]) // select
-      .mockResolvedValueOnce([]); // update leads
+  it("is idempotent for an already-unsubscribed subscriber", async () => {
+    queryMock.mockResolvedValueOnce([{ email: "reader@example.com", unsubscribed_at: "2026-09-01T00:00:00Z", folk_person_id: null }]);
 
-    const result = await unsubscribeByToken("token-1");
-
-    expect(result).toEqual({ found: true, alreadyUnsubscribed: false });
-    expect(queryMock).toHaveBeenCalledTimes(3);
-    expect(String(queryMock.mock.calls[2]![0])).toMatch(/update leads set unsubscribed_at/i);
-    expect(queryMock.mock.calls.some(([sql]) => /outbox/i.test(String(sql)))).toBe(false);
-  });
-
-  it("is idempotent for an already-unsubscribed lead", async () => {
-    queryMock.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: "lead-1", unsubscribed_at: "2026-09-01T00:00:00Z" }]);
-
-    const result = await unsubscribeByToken("token-1");
+    const result = await unsubscribeByToken("community-token");
 
     expect(result).toEqual({ found: true, alreadyUnsubscribed: true });
     // No further writes once already unsubscribed.
-    expect(queryMock).toHaveBeenCalledTimes(2);
+    expect(queryMock).toHaveBeenCalledTimes(1);
+    expect(unsubscribeAudienceMock).not.toHaveBeenCalled();
   });
 
   it("withdraws community consent and updates the mailing audience", async () => {

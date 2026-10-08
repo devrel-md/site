@@ -23,18 +23,5 @@ export async function unsubscribeByToken(token: string): Promise<UnsubscribeResu
     return { found: true, alreadyUnsubscribed: false };
   }
 
-  // Legacy leads from the retired unlock flow. Its result emails carried this
-  // unsubscribe link, so keep honouring it until the leads table is exported
-  // and dropped. Nothing in this app emails leads any more.
-  const existing = await query<{ id: string; unsubscribed_at: string | null }>(
-    `select id, unsubscribed_at from leads where lead_token = $1`,
-    [token]
-  );
-  const lead = existing[0];
-  if (!lead) return { found: false, alreadyUnsubscribed: false };
-
-  if (lead.unsubscribed_at) return { found: true, alreadyUnsubscribed: true };
-
-  await query(`update leads set unsubscribed_at = now() where id = $1`, [lead.id]);
-  return { found: true, alreadyUnsubscribed: false };
+  return { found: false, alreadyUnsubscribed: false };
 }
