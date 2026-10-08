@@ -2,6 +2,12 @@
 
 Dated, newest first.
 
+## 2026-10-08
+
+- The home page and quickstart no longer say agents pick up DEVREL.md on their own. They now give an instruction to add to `AGENTS.md` or `CLAUDE.md` so your agent reads it before developer relations work, and say that only the devrel.md skills look for the file automatically.
+- The home page example is labelled as an excerpt and links to the complete example. The "With DEVREL.md" quickstart opening now uses the example's measured 22 minutes instead of its 5-minute target, and no longer lists version requirements the file doesn't state.
+- The home page has a Contribute section: where to report problems or propose changes, who maintains DEVREL.md, and links to AGENTS.md and Corey Haines' marketing skills as related, independent work.
+
 ## 2026-10-04
 
 - Generated result pages now say they are automated drafts, when they were made and from how many public pages, and how to have one corrected or removed. They are open to search engines only when the draft passed every check and states at least one fact from the pages; otherwise they are marked `noindex`. A site can opt out by disallowing `devrel.md-generator` in robots.txt, and a company that publishes its own valid DEVREL.md is linked as the canonical version.
