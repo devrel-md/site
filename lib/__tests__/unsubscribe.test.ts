@@ -28,19 +28,18 @@ describe("unsubscribeByToken", () => {
     expect(result).toEqual({ found: false, alreadyUnsubscribed: false });
   });
 
-  it("unsubscribes a lead and cancels their pending outbox rows", async () => {
+  it("unsubscribes a legacy lead without touching the retired outbox", async () => {
     queryMock
       .mockResolvedValueOnce([]) // no community subscriber
       .mockResolvedValueOnce([{ id: "lead-1", unsubscribed_at: null }]) // select
-      .mockResolvedValueOnce([]) // update leads
-      .mockResolvedValueOnce([]); // update outbox
+      .mockResolvedValueOnce([]); // update leads
 
     const result = await unsubscribeByToken("token-1");
 
     expect(result).toEqual({ found: true, alreadyUnsubscribed: false });
-    expect(queryMock).toHaveBeenCalledTimes(4);
+    expect(queryMock).toHaveBeenCalledTimes(3);
     expect(String(queryMock.mock.calls[2]![0])).toMatch(/update leads set unsubscribed_at/i);
-    expect(String(queryMock.mock.calls[3]![0])).toMatch(/update outbox/i);
+    expect(queryMock.mock.calls.some(([sql]) => /outbox/i.test(String(sql)))).toBe(false);
   });
 
   it("is idempotent for an already-unsubscribed lead", async () => {

@@ -29,12 +29,6 @@ export function extractFunnelGates(markdown: string): FunnelGate[] {
   return gates;
 }
 
-/** The earliest stage (in funnel order) that is failing or unknown, per the
- * spec's rule: don't scale a stage until the one before it passes. */
-export function earliestBrokenGate(gates: FunnelGate[]): FunnelGate | null {
-  return gates.find((g) => g.pass === "no" || g.pass === "unknown") ?? null;
-}
-
 export type NextStep =
   | { kind: "fix"; gate: FunnelGate }
   | { kind: "measure"; gate: FunnelGate }

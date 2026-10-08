@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-const processOutboxOnce = vi.fn(async () => ({ sent: 0 }));
-vi.mock("@/lib/outbox", () => ({ processOutboxOnce: () => processOutboxOnce() }));
-
 const realProduction: Record<string, string> = {
   NODE_ENV: "production",
   DATABASE_URL: "postgres://u:p@db:5432/devrelmd",
@@ -10,7 +7,6 @@ const realProduction: Record<string, string> = {
   TURNSTILE_SITE_KEY: "0x4AAAAAAAexample",
   TURNSTILE_SITE_SECRET: "0x4AAAAAAAsecret",
   IP_HASH_SALT: "a-long-random-salt",
-  CRON_SECRET: "a-long-random-cron-secret",
   SITE_URL: "https://devrel.md",
   GIT_COMMIT_SHA: "abc123",
 };
@@ -24,7 +20,6 @@ async function withEnv(vars: Record<string, string>) {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
-  processOutboxOnce.mockClear();
 });
 
 describe("/healthz", () => {
@@ -36,7 +31,7 @@ describe("/healthz", () => {
   });
 
   it("stays status ok but reports config invalid, with names only, on development defaults", async () => {
-    await withEnv({ ...realProduction, CRON_SECRET: "local-dev-cron-secret", IP_HASH_SALT: "local-dev-salt" });
+    await withEnv({ ...realProduction, IP_HASH_SALT: "local-dev-salt", SITE_URL: "http://localhost:3000" });
     const { GET } = await import("@/app/healthz/route");
     const res = await GET();
     expect(res.headers.get("cache-control")).toBe("no-store");
@@ -45,7 +40,7 @@ describe("/healthz", () => {
       status: "ok",
       build_sha: "abc123",
       config: "invalid",
-      config_problems: ["IP_HASH_SALT", "CRON_SECRET"],
+      config_problems: ["IP_HASH_SALT", "SITE_URL"],
     });
     expect(text).not.toContain("local-dev");
   });
@@ -56,38 +51,6 @@ describe("/healthz", () => {
     const body = await (await GET()).json();
     expect(body.config).toBe("unchecked");
     expect(body.config_problems).toEqual([]);
-  });
-});
-
-function cronRequest(secret: string): Request {
-  return new Request("https://devrel.md/api/cron/outbox", {
-    method: "POST",
-    headers: { authorization: `Bearer ${secret}` },
-  });
-}
-
-describe("/api/cron/outbox", () => {
-  it("refuses with 503 in production while CRON_SECRET is the development default, even with that bearer", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    await withEnv({ ...realProduction, CRON_SECRET: "local-dev-cron-secret" });
-    const { POST } = await import("@/app/api/cron/outbox/route");
-    const res = await POST(cronRequest("local-dev-cron-secret"));
-    expect(res.status).toBe(503);
-    expect(processOutboxOnce).not.toHaveBeenCalled();
-  });
-
-  it("works in production with a real secret, and rejects the default bearer with 401", async () => {
-    await withEnv(realProduction);
-    const { POST } = await import("@/app/api/cron/outbox/route");
-    expect((await POST(cronRequest("local-dev-cron-secret"))).status).toBe(401);
-    expect((await POST(cronRequest("a-long-random-cron-secret"))).status).toBe(200);
-    expect(processOutboxOnce).toHaveBeenCalledTimes(1);
-  });
-
-  it("still accepts the development default locally", async () => {
-    await withEnv({ NODE_ENV: "development", CRON_SECRET: "local-dev-cron-secret" });
-    const { POST } = await import("@/app/api/cron/outbox/route");
-    expect((await POST(cronRequest("local-dev-cron-secret"))).status).toBe(200);
   });
 });
 

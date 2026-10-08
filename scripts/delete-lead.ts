@@ -1,4 +1,5 @@
-// Admin script: deletes a lead and their outbox entries by email, per the
+// Admin script: deletes a community subscriber, and any legacy lead and their
+// outbox rows from the retired unlock flow, by email, per the
 // brief's DELETE path requirement. Usage:
 //   infisical run --env=dev --path=/ -- npm run delete-lead -- someone@example.com
 import { Pool } from "pg";

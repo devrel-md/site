@@ -21,8 +21,8 @@ PROJECT = "proj_VTooQP1XM66SYDDZ"
 
 # Matches how production stores them today; everything else is stored as a secret.
 NOT_SECRET = {"DAILY_SPEND_CAP_USD", "EMAIL_FROM", "EMAIL_REPLY_TO", "RESEND_AUDIENCE_ID",
-              "SERIES_ENABLED", "SITE_URL", "TURNSTILE_SITE_KEY"}
-DEV_DEFAULTS = {"local-dev-salt", "local-dev-cron-secret", "http://localhost:3000",
+              "SITE_URL", "TURNSTILE_SITE_KEY"}
+DEV_DEFAULTS = {"local-dev-salt", "http://localhost:3000",
                 "1x00000000000000000000AA", "1x0000000000000000000000000000000AA"}
 
 

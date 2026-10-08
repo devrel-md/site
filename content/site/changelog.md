@@ -2,6 +2,10 @@
 
 Dated, newest first.
 
+## 2026-10-08
+
+- The privacy notice now says what we still hold from the retired unlock form: nothing uses it any more and it will be deleted. The never-launched email series has been removed for good.
+
 ## 2026-10-04
 
 - Generated result pages now say they are automated drafts, when they were made and from how many public pages, and how to have one corrected or removed. They are open to search engines only when the draft passed every check and states at least one fact from the pages; otherwise they are marked `noindex`. A site can opt out by disallowing `devrel.md-generator` in robots.txt, and a company that publishes its own valid DEVREL.md is linked as the canonical version.

@@ -17,7 +17,6 @@ export type ConfigReport = {
 // Must match the fallbacks in lib/env.ts (lib/__tests__/configCheck.test.ts checks this).
 export const DEV_DEFAULTS = {
   IP_HASH_SALT: "local-dev-salt",
-  CRON_SECRET: "local-dev-cron-secret",
   SITE_URL: "http://localhost:3000",
 };
 
@@ -51,13 +50,6 @@ function turnstileSecret(source: Source): string {
   return value(source, "TURNSTILE_SITE_SECRET") || value(source, "TURNSTILE_SECRET_KEY");
 }
 
-export function cronSecretProblem(source: Source = process.env): string | null {
-  const secret = value(source, "CRON_SECRET");
-  if (!secret) return "missing";
-  if (secret === DEV_DEFAULTS.CRON_SECRET) return "development default";
-  return null;
-}
-
 export function turnstileSecretProblem(source: Source = process.env): string | null {
   const secret = turnstileSecret(source);
   if (!secret) return "missing";
@@ -88,7 +80,6 @@ export function checkConfig(source: Source = process.env): ConfigReport {
     "IP_HASH_SALT",
     !salt ? "missing" : salt === DEV_DEFAULTS.IP_HASH_SALT ? "development default" : null
   );
-  need("CRON_SECRET", cronSecretProblem(source));
   need("SITE_URL", siteUrlProblem(value(source, "SITE_URL")));
 
   const resend = value(source, "RESEND_API_KEY");

@@ -9,7 +9,6 @@ const good: Record<string, string> = {
   TURNSTILE_SITE_KEY: "0x4AAAAAAAexample",
   TURNSTILE_SITE_SECRET: "0x4AAAAAAAsecret",
   IP_HASH_SALT: "a-long-random-salt",
-  CRON_SECRET: "a-long-random-cron-secret",
   SITE_URL: "https://devrel.md",
   RESEND_API_KEY: "re_test",
   RESEND_AUDIENCE_ID: "aud_test",
@@ -45,7 +44,6 @@ describe("checkConfig", () => {
   it("flags every required variable when nothing is set", () => {
     expect(problemNames({ NODE_ENV: "production" }).sort()).toEqual(
       [
-        "CRON_SECRET",
         "DATABASE_URL",
         "IP_HASH_SALT",
         "OPENROUTER_API_KEY",
@@ -56,11 +54,15 @@ describe("checkConfig", () => {
     );
   });
 
+  it("no longer requires the retired email series variables", () => {
+    expect(checkConfig({ ...good, CRON_SECRET: "", SERIES_ENABLED: "true" })).toEqual({ problems: [], warnings: [] });
+  });
+
   it("treats an empty string as missing, since ?? in lib/env.ts would accept it", () => {
-    const report = checkConfig({ ...good, CRON_SECRET: "", IP_HASH_SALT: "  " });
+    const report = checkConfig({ ...good, DATABASE_URL: "", IP_HASH_SALT: "  " });
     expect(report.problems).toEqual([
+      { name: "DATABASE_URL", reason: "missing" },
       { name: "IP_HASH_SALT", reason: "missing" },
-      { name: "CRON_SECRET", reason: "missing" },
     ]);
   });
 
@@ -68,12 +70,10 @@ describe("checkConfig", () => {
     const report = checkConfig({
       ...good,
       IP_HASH_SALT: "local-dev-salt",
-      CRON_SECRET: "local-dev-cron-secret",
       SITE_URL: "http://localhost:3000",
     });
     expect(report.problems).toEqual([
       { name: "IP_HASH_SALT", reason: "development default" },
-      { name: "CRON_SECRET", reason: "development default" },
       { name: "SITE_URL", reason: "development default" },
     ]);
   });
@@ -123,7 +123,6 @@ describe("checkConfig", () => {
     }
     const { env } = await import("@/lib/env");
     expect(env.ipHashSalt).toBe(DEV_DEFAULTS.IP_HASH_SALT);
-    expect(env.cronSecret).toBe(DEV_DEFAULTS.CRON_SECRET);
     expect(env.siteUrl).toBe(DEV_DEFAULTS.SITE_URL);
     vi.unstubAllEnvs();
   });
@@ -135,11 +134,11 @@ describe("logConfigReport", () => {
   it("logs names and reasons, never values", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    logConfigReport(checkConfig({ ...good, CRON_SECRET: "local-dev-cron-secret" }));
+    logConfigReport(checkConfig({ ...good, IP_HASH_SALT: "local-dev-salt" }));
     const logged = error.mock.calls.flat().join("\n");
     expect(logged).toContain("PRODUCTION CONFIGURATION INVALID");
-    expect(logged).toContain("CRON_SECRET: development default");
-    expect(logged).not.toContain("local-dev-cron-secret");
+    expect(logged).toContain("IP_HASH_SALT: development default");
+    expect(logged).not.toContain("local-dev-salt");
     expect(logged).not.toContain(good.IP_HASH_SALT);
   });
 

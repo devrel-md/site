@@ -2,7 +2,7 @@
 >
 > - The email gate on copy and download. Results are free to read, copy and download without an email address.
 > - The lead qualification form, the qualified-lead handoff and the Folk push for qualified leads. Community signup is now optional, email only and consent based, and creates no lead.
-> - The 5-email series. Its templates remain in `emails/` but nothing schedules them.
+> - The 5-email series. It is retired for good: its templates, the outbox worker, `/api/cron/outbox`, `CRON_SECRET` and `SERIES_ENABLED` were removed (issue #29).
 > - The spec as the home page. `/` is now a short introduction and the spec lives at `/spec`.
 > - Local development with `docker compose`. Development uses a shared dev database through Infisical.
 > - Deployment being out of scope. The site deploys automatically from `main`.
