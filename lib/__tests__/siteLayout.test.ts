@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { siteHeaderHtml, siteFooterHtml, NAV, CONTRIBUTE_URL } from "@/lib/siteLayout";
+import { siteHeaderHtml, siteFooterHtml, NAV, CONTRIBUTE_URL, GITHUB_URL } from "@/lib/siteLayout";
 
 describe("siteFooterHtml", () => {
   const footer = siteFooterHtml();
@@ -33,6 +33,16 @@ describe("siteHeaderHtml", () => {
     expect(labels).toEqual(["Quickstart", "Spec", "Skills", "Generate", "Validate"]);
     expect(NAV).toHaveLength(5);
     expect(html).not.toContain("aria-current");
+  });
+
+  it("links the GitHub organisation as a labelled icon button before the theme toggle", () => {
+    const html = siteHeaderHtml("");
+    expect(GITHUB_URL).toBe("https://github.com/devrel-md");
+    expect(html).toMatch(
+      /<a class="github-link" href="https:\/\/github\.com\/devrel-md" aria-label="DEVREL\.md on GitHub"[^>]*><svg class="github-mark"[^>]*aria-hidden="true"[^>]*>.*<\/svg><\/a>/
+    );
+    expect(html.indexOf("github-link")).toBeLessThan(html.indexOf("theme-toggle"));
+    expect(html).not.toMatch(/<a class="github-link"[^>]*(target|rel)=/);
   });
 
   it('marks the current page with aria-current="page" and its section with "true"', () => {

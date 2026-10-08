@@ -18,6 +18,15 @@ export const DEVREL_BRIDGE_URL = "https://devrelbridge.com/?utm_source=devrel.md
 export const BOOK_URL = "https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer";
 // The contribution guide lives in the spec repo. Shared by the footer and the home page FAQ.
 export const CONTRIBUTE_URL = "https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md";
+// The header's GitHub button. The organisation page rather than one repo, so it
+// lists every public DEVREL.md repo in one place.
+export const GITHUB_URL = "https://github.com/devrel-md";
+
+// The GitHub mark, inline and currentColor like the brand mark. The header
+// button is icon only (the nav has no room for a label), so the link's
+// aria-label is its accessible name.
+const GITHUB_SVG =
+  '<svg class="github-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
 
 // The brand mark (braces around a dot), inline so it follows the theme through
 // currentColor. Decorative: the wordmark text next to it is the accessible name.
@@ -90,8 +99,10 @@ export function siteHeaderHtml(path: string): string {
   <nav>
     <a class="wordmark" href="/">${MARK_SVG}DEVREL.md</a>
     ${navLinks}
-    <span class="spacer"></span>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">Theme</button>
+    <span class="header-actions">
+      <a class="github-link" href="${GITHUB_URL}" aria-label="DEVREL.md on GitHub" title="DEVREL.md on GitHub">${GITHUB_SVG}</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">Theme</button>
+    </span>
   </nav>
 </header>`;
 }

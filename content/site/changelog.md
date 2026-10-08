@@ -4,6 +4,7 @@ Dated, newest first.
 
 ## 2026-10-08
 
+- Every page now has a GitHub button in the header, next to the theme switch, linking to the DEVREL.md repositories so you can read the source and contribute.
 - The records from the retired unlock form have been deleted, as the privacy notice promised.
 - The home page and quickstart no longer say agents pick up DEVREL.md on their own. They now give an instruction to add to `AGENTS.md` or `CLAUDE.md` so your agent reads it before developer relations work, and say that only the devrel.md skills look for the file automatically.
 - The home page example is labelled as an excerpt and links to the complete example. The "With DEVREL.md" quickstart opening now uses the example's measured 22 minutes instead of its 5-minute target, and no longer lists version requirements the file doesn't state.
