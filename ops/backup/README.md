@@ -33,4 +33,4 @@ Every alert attempt is logged with Resend's answer: `ALERT SENT to …` or `ALER
 ENV_FILE=~/devrelmd/backup.env LOG=/tmp/backup-failtest.log CONTAINER=devrelmd-does-not-exist ~/devrelmd/backup.sh; cat /tmp/backup-failtest.log; rm /tmp/backup-failtest.log
 ```
 
-Alert last tested: 8 Oct 2026 on ubuntu-4gb-fsn1. The forced failure was logged and Resend reported the email to hello@devrel.md as delivered.
+Alert last tested: 8 Oct 2026 on ubuntu-4gb-fsn1. The forced failure was logged as `ALERT SENT`, and Resend reported the email to hello@devrel.md as delivered. A missing env file is logged as `FAIL cannot read …`; it cannot be emailed, because the Resend key lives in that file.
