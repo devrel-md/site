@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 // static, Next prerenders this at build time, when SITE_URL is not set.
 export const dynamic = "force-dynamic";
 
-// /go/ links are tracked redirects to devrelbridge.com: a crawler following them
+// /go/ links are tracked redirects to external pages: a crawler following them
 // adds nothing to the index and inflates click counts.
 const AI_AGENTS = ["GPTBot", "ClaudeBot", "Claude-User", "PerplexityBot", "Google-Extended"];
 
