@@ -42,6 +42,7 @@ ${skillLinks}
 
 ## Other
 
+- [Marcos Placona](https://marcos.md/index.md): who created and maintains DEVREL.md, in a profile written for agents
 - [Changelog](${env.siteUrl}/changelog)
 - [Privacy](${env.siteUrl}/privacy)
 - [Full content export](${env.siteUrl}/llms-full.txt)

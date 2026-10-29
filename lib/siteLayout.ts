@@ -16,6 +16,8 @@ export const NAV = [
 // as ordinary backlinks. No rel attribute on purpose.
 export const DEVREL_BRIDGE_URL = "https://devrelbridge.com/?utm_source=devrel.md&utm_medium=footer";
 export const BOOK_URL = "https://devrelbridge.com/book?utm_source=devrel.md&utm_medium=footer";
+// The maintainer's profile page. Unlike the links above it carries rel="author".
+export const MARCOS_URL = "https://marcos.md";
 // The contribution guide lives in the spec repo. Shared by the footer and the home page FAQ.
 export const CONTRIBUTE_URL = "https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md";
 // The header's GitHub button. The organisation page rather than one repo, so it
@@ -111,7 +113,7 @@ export function siteHeaderHtml(path: string): string {
 export function siteFooterHtml(): string {
   return `<footer class="site-footer">
   <div class="wrap">
-    <span>Created and maintained by Marcos Placona, <a href="${DEVREL_BRIDGE_URL}">DevRel Bridge</a>. Framework from <a href="${BOOK_URL}"><em>How to Build Developer Ecosystems</em></a> by Amir Shevat and Marcos Placona.</span>
+    <span>Created and maintained by <a href="${MARCOS_URL}" rel="author">Marcos Placona</a>, <a href="${DEVREL_BRIDGE_URL}">DevRel Bridge</a>. Framework from <a href="${BOOK_URL}"><em>How to Build Developer Ecosystems</em></a> by Amir Shevat and Marcos Placona.</span>
   </div>
   <div class="wrap">
     <a class="nav-link" href="/changelog">Changelog</a>

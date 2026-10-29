@@ -78,4 +78,9 @@ describe("llms.txt", () => {
     expect(txt).toMatch(/- \[no-summary\]\([^)]*\/skills\/no-summary\): Use when someone asks to check a quickstart\.\n/);
     expect(txt).not.toContain("Trigger phrases");
   });
+
+  it("links the maintainer's profile in the Other section", async () => {
+    const txt = await buildLlmsTxt();
+    expect(txt).toContain("- [Marcos Placona](https://marcos.md/index.md): who created and maintains DEVREL.md, in a profile written for agents\n");
+  });
 });

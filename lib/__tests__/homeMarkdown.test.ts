@@ -54,6 +54,7 @@ describe("renderHomeHtml", () => {
       'the <a href="https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md">contribution guide</a> explains'
     );
     expect(answer).toContain("Marcos Placona maintains it today.");
+    expect(answer).toContain('Created and maintained by <a href="https://marcos.md">Marcos Placona</a>');
   });
 
   it("labels the example as an excerpt and keeps the comparison to measured facts", async () => {
@@ -94,7 +95,7 @@ describe("renderHomeHtml", () => {
     expect(section).toContain('href="https://github.com/devrel-md/spec"');
     expect(section).toContain('href="https://github.com/devrel-md/skills"');
     expect(section).toContain('href="https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md"');
-    expect(section).toContain("maintained by Marcos Placona");
+    expect(section).toContain('maintained by <a href="https://marcos.md">Marcos Placona</a>');
     expect(section).toContain("Amir Shevat and Marcos Placona");
     expect(section).toContain('<a href="https://agents.md">AGENTS.md</a>');
     expect(section).toContain('href="https://github.com/coreyhaines31/marketingskills"');
