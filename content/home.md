@@ -125,7 +125,7 @@ DEVREL.md is a draft, and real files make it better. Small fixes, such as a typo
 
 The [contribution guide](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) explains how to report a problem or propose a change or a skill, how decisions are made, and how contributors are credited.
 
-DEVREL.md was created and is maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). Its frameworks come from the book by Amir Shevat and Marcos Placona. It takes its inspiration from [AGENTS.md](https://agents.md), and the skills are designed to work alongside Corey Haines' [marketing skills](https://github.com/coreyhaines31/marketingskills). Both are independent projects: linking to them doesn't mean their authors endorse DEVREL.md.
+DEVREL.md was created and is maintained by [Marcos Placona](https://marcos.md) at [DevRel Bridge](https://devrelbridge.com). Its frameworks come from the book by Amir Shevat and Marcos Placona. It takes its inspiration from [AGENTS.md](https://agents.md), and the skills are designed to work alongside Corey Haines' [marketing skills](https://github.com/coreyhaines31/marketingskills). Both are independent projects: linking to them doesn't mean their authors endorse DEVREL.md.
 
 ## FAQ
 
@@ -159,4 +159,4 @@ One DEVREL.md per developer product, in that product's folder. The nearest file 
 
 ### Who maintains it?
 
-Created and maintained by Marcos Placona at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home-faq) by Amir Shevat and Marcos Placona. [Read the full specification](/spec). Marcos Placona maintains it today. Small corrections can go straight to a pull request, and the [contribution guide](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) explains how to report problems, propose changes or skills, and how decisions are made.
+Created and maintained by [Marcos Placona](https://marcos.md) at [DevRel Bridge](https://devrelbridge.com). The funnel stages, stage gates and benchmarks come from [*How to Build Developer Ecosystems*](/go/book?c=home-faq) by Amir Shevat and Marcos Placona. [Read the full specification](/spec). Marcos Placona maintains it today. Small corrections can go straight to a pull request, and the [contribution guide](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) explains how to report problems, propose changes or skills, and how decisions are made.

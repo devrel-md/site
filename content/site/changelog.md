@@ -2,6 +2,10 @@
 
 Dated, newest first.
 
+## 2026-10-29
+
+- The footer, the home page and `llms.txt` now link to the maintainer's profile at [marcos.md](https://marcos.md), a one-page profile written for people and AI agents.
+
 ## 2026-10-08
 
 - Every page now has a GitHub button in the header, next to the theme switch, linking to the DEVREL.md repositories so you can read the source and contribute.
