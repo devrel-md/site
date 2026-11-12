@@ -30,7 +30,7 @@ An excerpt from the DEVREL.md of Acme Vector, a fictional product. The [complete
 
 ```markdown
 ---
-spec: devrel.md/0.1
+spec: devrel.md/0.2
 product: Acme Vector
 stage: growth
 updated: 2026-09-28
@@ -42,11 +42,13 @@ Add semantic search to an existing Postgres app in one afternoon,
 without running a separate vector cluster.
 
 ## ICPs
-### Platform teams at Series A to C SaaS companies
-- Context: Python or TypeScript, Postgres on AWS, 5 to 30 engineers
+### Teams adding semantic search to an existing SaaS app
+- Technical context: Python or TypeScript, Postgres on AWS, 5 to 30 engineers
+- Hiring moment: the roadmap commits to an AI search feature
 - Activation event: first production query from an existing table
 
 ## North Star
+North Star metric: weekly active projects with a production query
 Time to Hello World: 22 min today, 5 min target
 
 ## Funnel health

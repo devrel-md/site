@@ -6,7 +6,7 @@ export function validateFormHtml(previousMarkdown = ""): string {
   return `<form class="validate-form" method="post" action="/validate">
 <div>
 <label for="markdown">Paste your DEVREL.md</label>
-<textarea id="markdown" name="markdown" rows="16" required placeholder="---&#10;spec: devrel.md/0.1&#10;product: ...&#10;---" spellcheck="false">${escapeHtml(previousMarkdown)}</textarea>
+<textarea id="markdown" name="markdown" rows="16" required placeholder="---&#10;spec: devrel.md/0.2&#10;product: ...&#10;---" spellcheck="false">${escapeHtml(previousMarkdown)}</textarea>
 </div>
 <button class="primary" type="submit">Validate</button>
 </form>`;

@@ -22,7 +22,7 @@ The response is a stream of `text/event-stream` events while the file is written
 
 ```text
 event: delta
-data: "---\nspec: devrel.md/0.1\n"
+data: "---\nspec: devrel.md/0.2\n"
 
 event: delta
 data: "product: Example\n"
