@@ -29,7 +29,7 @@ You should now have a `DEVREL.md` at the root of your repo that starts like this
 
 ```markdown
 ---
-spec: devrel.md/0.1
+spec: devrel.md/0.2
 product: Your Product
 stage: growth
 updated: 2026-09-29

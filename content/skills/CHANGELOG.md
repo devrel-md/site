@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `devrel-md-init` 0.2.0: follows spec 0.2. `stage` counts activated developers a month (early under 20, growth 20 to 100, scale 100 to 400, enterprise over 400), and a signup figure alone leaves it `unknown`. ICP blocks name segments by what developers are building and cover hiring moment, goals, pains, alternatives and switching forces. North Star has a team-chosen metric on top of time to Hello World, Activation includes retention, and the Awareness and retention gates use placeholders until the team sets them. The Competitors section is gone. Files on spec 0.1 are migrated using the spec's migration note. The worked stage examples use the new bands
+
 ## 0.1.0, unreleased
 
 - `devrel-md-init`: writes a DEVREL.md following spec 0.1 and reports failing stage gates

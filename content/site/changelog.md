@@ -2,6 +2,11 @@
 
 Dated, newest first.
 
+## 2026-11-12
+
+- The site now serves version 0.2 of the DEVREL.md spec. ICPs are named by what developers are building and add hiring moment, goals, pains, alternatives and switching forces. North Star puts a team-chosen metric above time to Hello World. Activation adds retention. `stage` now counts activated developers a month instead of signups. The Competitors section is gone. The spec's changelog has a migration note for 0.1 files.
+- The hosted generator and the `devrel-md-init` skill now write 0.2 files, and the home page, quickstart and API examples show 0.2.
+
 ## 2026-10-29
 
 - The footer, the home page and `llms.txt` now link to the maintainer's profile at [marcos.md](https://marcos.md), a one-page profile written for people and AI agents.
