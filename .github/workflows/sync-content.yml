@@ -1,0 +1,40 @@
+name: Sync content
+
+# Copies devrel-md/spec and devrel-md/skills into content/ and opens (or updates) one pull
+# request. It never merges: merging to main deploys, so a person reviews and merges it.
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: sync-content
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SYNC_BRANCH: content/sync
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Sync
+        run: scripts/sync-content.sh
+      - name: Run CI on the sync branch
+        run: |
+          if git ls-remote --exit-code --heads origin "$SYNC_BRANCH" >/dev/null; then
+            gh workflow run ci.yml --ref "$SYNC_BRANCH"
+          fi

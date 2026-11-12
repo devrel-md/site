@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Started by the Sync content workflow. Pull requests opened with GITHUB_TOKEN don't trigger
+  # pull_request runs, so without this the required "ci" check would never report on them.
+  workflow_dispatch:
 
 permissions:
   contents: read
