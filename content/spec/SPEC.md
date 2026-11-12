@@ -1,6 +1,6 @@
 ---
 spec: devrel.md
-version: 0.1.0
+version: 0.2.0
 status: draft
 license: CC BY 4.0
 maintainer: Marcos Placona, DevRel Bridge
@@ -42,7 +42,7 @@ If none exists, a tool may fall back to `.agents/product-marketing-context.md` f
 - **Facts over adjectives.** "Median time to first call: 14 minutes (PostHog, Sep 2026)" is useful. "Onboarding is fast" is not.
 - **Unknown is a valid answer.** A file full of honest `unknown` values is better than one full of guesses. The unknowns are where the work is.
 - **Label what you inferred.** Facts carry their source. A reasonable qualitative inference carries `(inferred)` in the body text, and proposed wording carries `(proposed)`. For example, in the ICPs section: "Technical context: TypeScript and Postgres (inferred from the README)". Proposed wording never contains invented numbers: leave a placeholder such as `<N minutes>` for the team to fill.
-- **Keep machine-read values bare.** Frontmatter values and the `Pass` column of Funnel health hold only the allowed values, with no label or comment beside them. Put an inference label in body text or in the Now column. `stage` is never inferred: it is `unknown` unless a monthly developer signup figure has a source (`pre-launch` is the one exception, when there is no public developer path yet). Record the figure and its source in the body, for example under Metrics.
+- **Keep machine-read values bare.** Frontmatter values and the `Pass` column of Funnel health hold only the allowed values, with no label or comment beside them. Put an inference label in body text or in the Now column. `stage` is never inferred: it is `unknown` unless a monthly figure for activated developers has a source (`pre-launch` is the one exception, when there is no public developer path yet). Record the figure and its source in the body, for example under Metrics.
 - **Short enough to read in five minutes.** Aim for under 300 lines. Link out to detail rather than pasting it in.
 - **No secrets.** No API keys, internal URLs that expose infrastructure, customer names you have no permission to share, or revenue figures you would not publish.
 - **One file, one truth.** Other documents can link to DEVREL.md instead of repeating it.
@@ -53,7 +53,7 @@ Every DEVREL.md starts with YAML frontmatter:
 
 ```yaml
 ---
-spec: devrel.md/0.1        # required, the spec version this file follows
+spec: devrel.md/0.2        # required, the spec version this file follows
 product: Acme Vector       # required, the product name
 url: https://acme.dev      # recommended, the product's developer home
 stage: growth              # required: pre-launch | early | growth | scale | enterprise | unknown
@@ -62,16 +62,18 @@ owner: devrel@acme.dev     # optional, who keeps this file current
 ---
 ```
 
-`stage` describes the company's developer program, not its funding:
+`stage` describes the company's developer program, not its funding. It counts activated developers a month: developers who reached the event in [Activation](#activation) that month.
 
 | Stage | Roughly |
 | --- | --- |
 | pre-launch | No public developer path yet |
-| early | Under 100 developer signups a month |
-| growth | 100 to 500 a month |
-| scale | 500 to 2,000 a month |
-| enterprise | Over 2,000 a month |
-| unknown | Not known yet. Public pages rarely reveal signup volume |
+| early | Under 20 activated developers a month |
+| growth | 20 to 100 a month |
+| scale | 100 to 400 a month |
+| enterprise | Over 400 a month |
+| unknown | Not known yet. Public pages rarely reveal activation volume |
+
+Stage counts activated developers, not signups, because signups can triple while the share that activates falls, and then the program looks further along than it is. The bands are the earlier signup bands multiplied by the default 20% activation gate.
 
 ## Required sections
 
@@ -91,16 +93,25 @@ Not: "The AI-native data platform for modern teams."
 
 ### ICPs
 
-One `###` block per developer segment, most important first. Each block covers:
+One `###` block per developer segment, most important first. Name each segment by what its developers are building, not by their role or stack: "Teams adding semantic search to an existing SaaS app", not "Backend engineers using Python". Each block covers:
 
-- **Technical context:** languages, frameworks, infrastructure
+- **Technical context:** languages, frameworks, infrastructure, and where the product plugs into that stack
 - **Company stage and team size**
 - **Use case:** the specific job they are hiring the product for
+- **Hiring moment:** what happened that made them go looking
+- **Goals:** what they want, most important first
+- **Pains:** what gets in the way, most important first
+- **Alternatives:** what they use today, including building it themselves or doing nothing, and why they would leave it
+- **Switching forces:** push (what drives them off their current setup), pull (what draws them to this product), anxiety (what makes them hesitate) and habit (what keeps them where they are)
 - **Decision:** who can adopt it alone, and who has to approve it (buyer and champion, where they differ)
 - **Activation event:** the action that shows real adoption, with a target time from signup
 - **Fit score:** optional, see [ICP fit score](#icp-fit-score)
 
 The litmus test for a segment: you can picture a specific person who matches it. If you can't, it is too broad.
+
+Alternatives live in each segment rather than in one competitor list, because the value proposition changes with what a segment is replacing. If the pull is weaker than the anxiety and habit together, developers in that segment will try the product and go back to what they had.
+
+Hiring moment and switching forces are a community pattern from Jobs to be Done: the forces of progress described by Bob Moesta and Chris Spiek.
 
 ### Anti-personas
 
@@ -108,19 +119,31 @@ Who the product is deliberately not serving right now. This protects focus: it's
 
 ### North Star
 
-The time it takes a new developer to reach their first success, today and as a target. Say how it is measured.
+Two layers. On top, the North Star metric: the one number the business grows on, chosen by the team. Underneath, time to Hello World: how long a new developer takes to reach their first success. Give each a value today, a target and how it is measured.
 
 ```markdown
+- North Star metric: weekly active projects with a production query, 410 today, 600 target (product analytics, Sep 2026)
 - Time to Hello World: 14 min median today, 5 min target
 - Measured: signup to first successful API call, PostHog, last 30 days
 - First success means: a query returns results from the developer's own table
 ```
+
+Pick a North Star metric that only grows when developers get lasting value, such as weekly active projects or production API calls, not signups, page views or stars. The rest of the file sits under it: time to Hello World here, activation and retention in [Activation](#activation), and drop-off at each stage in [Funnel health](#funnel-health).
 
 "Hello World" means the first moment a developer thinks "this works and I can see how it solves my problem". It isn't necessarily printing text.
 
 ### Activation
 
 What counts as real adoption, as opposed to integration. Integration is wiring the SDK in. Activation is solving a real problem with real data in the developer's own context. State the event, the target time and the current rate if known.
+
+Then state retention: the share of activated developers still using the product after a set window. Pick the window from how often the product should be used, for example a week for something used daily, or a quarter for something run at month end.
+
+```markdown
+- Event: first production query against an existing table
+- Target: within 7 days of signup
+- Current rate: 14% of signups within 7 days
+- Retention: 62% of activated developers still querying after 30 days
+```
 
 ### Funnel health
 
@@ -129,14 +152,14 @@ A table with one row per stage. Each row says whether the stage gate currently p
 ```markdown
 | Stage | Gate | Now | Pass |
 | --- | --- | --- | --- |
-| Awareness | Signups come from quality sources, not just traffic | Mostly HN spikes | no |
+| Awareness | > 50% of signups fit an ICP segment | 31% of last month's signups | no |
 | Onboarding | Median time to first call < 5 min and first-call success > 80% | 14 min, 71% | no |
-| Activation | Activation rate > 20% and production usage measurable | unknown | unknown |
+| Activation | Activation rate > 20% and > 60% of activated developers active after 30 days | unknown | unknown |
 | Engagement | Community answers > 65% of questions within 24h | 40% | no |
 | Monetization | Paying deepens trust rather than replacing it | too early | n/a |
 ```
 
-`Pass` is exactly one of `yes`, `no`, `unknown` or `n/a`, with nothing else in the cell. `yes` needs evidence against the gate's threshold (a measured number, or for Awareness, known signup sources). Reputation, logos or testimonials are not evidence: mark `unknown` and say what you saw in the Now column. The default gates are listed in [Default stage gates](#default-stage-gates). Change a gate's threshold if you have a reason, and say why in the row.
+`Pass` is exactly one of `yes`, `no`, `unknown` or `n/a`, with nothing else in the cell. `yes` needs evidence against the gate's threshold, which means a measured number. Reputation, logos or testimonials are not evidence: mark `unknown` and say what you saw in the Now column. The default gates are listed in [Default stage gates](#default-stage-gates). Change a gate's threshold if you have a reason, and say why in the row. The Awareness share and the retention share and window have no default: the team sets them. Until it does, write the gate with a placeholder such as `<X>%` and mark `Pass` `unknown`.
 
 The rule behind the table: don't scale a stage until the one before it passes. Awareness spent on a broken onboarding path is wasted budget.
 
@@ -168,10 +191,6 @@ How developers or their companies pay: free, freemium, usage-based, subscription
 
 Tone, words to use and avoid, claims that must never be made, compliance constraints (SOC 2, HIPAA, GDPR and so on), and anything that must never be generated by AI without human review (security guidance, legal text, incident communication).
 
-### Competitors
-
-Named alternatives, including "build it yourself", with one line each on when a developer would pick them instead.
-
 ### Open questions
 
 Things the team knows it doesn't know yet. Tools reading this file should treat these as the most useful places to help.
@@ -184,11 +203,13 @@ The five stages and their default gates. A stage is healthy when its gate passes
 
 | Stage | Developer's state of mind | Default gate |
 | --- | --- | --- |
-| Awareness | "I know this exists and roughly what it's for." | Signups arrive from quality sources, not just traffic spikes |
+| Awareness | "I know this exists and roughly what it's for." | More than X% of signups fit an ICP segment, with X set by the team |
 | Onboarding | "I got it working in minutes." | Median time to first call under 5 minutes, and first-call success above 80% |
-| Activation | "It solves my real problem with my real data." | Activation rate above 20%, and production usage is measurable |
+| Activation | "It solves my real problem with my real data." | Activation rate above 20%, and more than Y% of activated developers are still active after a window the team picks |
 | Engagement | "I'm part of a community that helps me grow." | The community answers more than 65% of questions, and engagement sustains itself |
 | Monetization | "Paying gets me more value, and I feel good about it." | Paying deepens trust rather than replacing it |
+
+To measure the Awareness gate, enrich each signup (company, role, stack) and tag whether it fits an ICP segment, using the developer's profile and their early usage.
 
 A product that never charges developers (a platform ecosystem, a pure open source project) marks Monetization `n/a`.
 
@@ -198,13 +219,13 @@ Starting points. Replace them with what the team actually tracks.
 
 | Stage | Leading | Lagging | Good / Great / Excellent |
 | --- | --- | --- | --- |
-| Awareness | Docs or tutorial to quickstart click-through | Branded search, delayed signups | 0.7% / 1.0% / 1.5%+ click-through |
+| Awareness | Docs or tutorial to quickstart click-through | Share of signups fitting an ICP, branded search | 0.7% / 1.0% / 1.5%+ click-through |
 | Onboarding | Quickstart completion, drop-off step | Median time to first call, first-call success | 40% / 60% / 80%+ completion |
-| Activation | Share reaching the activation event in 24h | 7-day activation retention, production keys | 15% / 25% / 35%+ in 24h |
+| Activation | Share reaching the activation event in 24h | Activated developers a month, retention of activated developers | 15% / 25% / 35%+ in 24h |
 | Engagement | Answer rate within 24h, peer response time | Feature breadth per account, community content per month | 50% / 65% / 80%+ answered |
 | Monetization | Pricing page visits by activated developers | Trial to paid, expansion, net retention | 8% / 12% / 18%+ trial to paid |
 
-Metrics to replace, because they look good without predicting anything: follower counts (use click-through and activation), total docs views (use completion), event attendance (use first calls after the event), GitHub stars (use active usage and contributors), community member count (use answer rate).
+Metrics to replace, because they look good without predicting anything: total signups (use activated developers), follower counts (use click-through and activation), total docs views (use completion), event attendance (use first calls after the event), GitHub stars (use active usage and contributors), community member count (use answer rate).
 
 ### ICP fit score
 
@@ -227,10 +248,10 @@ Score each segment from 1 to 5 on four factors:
 
 ## Versioning
 
-This is version 0.1.0, a draft. Minor versions add optional sections or fields, and existing files stay valid. Major versions may rename or remove required sections, and they come with a migration note. Changes go through an issue first, then a pull request, in the `devrel-md/spec` repository. Small documentation corrections can go straight to a pull request. See [CONTRIBUTING.md](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) for how to report a problem, propose a change or a skill, and how decisions are made and recorded.
+This is version 0.2.0, a draft. Minor versions add optional sections or fields, and existing files stay valid. Major versions may rename or remove required sections, and they come with a migration note. While the spec is a 0.x draft, a minor version can also make a breaking change, and it gets a migration note in [CHANGELOG.md](https://github.com/devrel-md/spec/blob/main/CHANGELOG.md). Changes go through an issue first, then a pull request, in the `devrel-md/spec` repository. Small documentation corrections can go straight to a pull request. See [CONTRIBUTING.md](https://github.com/devrel-md/spec/blob/main/CONTRIBUTING.md) for how to report a problem, propose a change or a skill, and how decisions are made and recorded.
 
 ## Credits
 
-Created and maintained by Marcos Placona ([DevRel Bridge](https://devrelbridge.com)). The funnel stages, stage gates, ICP canvas and benchmarks come from *How to Build Developer Ecosystems* by Amir Shevat and Marcos Placona.
+Created and maintained by Marcos Placona ([DevRel Bridge](https://devrelbridge.com)). The funnel stages, stage gates, ICP canvas and benchmarks come from *How to Build Developer Ecosystems* by Amir Shevat and Marcos Placona. The hiring moment and switching forces in ICPs come from Jobs to be Done (Bob Moesta and Chris Spiek).
 
 This specification is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
