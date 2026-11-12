@@ -32,9 +32,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - name: Sync
-        run: scripts/sync-content.sh
-      - name: Run CI on the sync branch
         run: |
-          if git ls-remote --exit-code --heads origin "$SYNC_BRANCH" >/dev/null; then
-            gh workflow run ci.yml --ref "$SYNC_BRANCH"
-          fi
+          before=$(git ls-remote --heads origin "$SYNC_BRANCH" | cut -f1)
+          scripts/sync-content.sh
+          after=$(git ls-remote --heads origin "$SYNC_BRANCH" | cut -f1)
+          echo "pushed=$([ -n "$after" ] && [ "$after" != "$before" ] && echo true || echo false)" >> "$GITHUB_ENV"
+      - name: Run CI on the sync branch
+        if: env.pushed == 'true'
+        run: gh workflow run ci.yml --ref "$SYNC_BRANCH"
