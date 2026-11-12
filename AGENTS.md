@@ -24,7 +24,7 @@ A pull request that changes behaviour without these is incomplete.
 
 ## Content
 
-- Never hand-edit `content/spec` or `content/skills`. They are synced copies of `devrel-md/spec` and `devrel-md/skills`. Change the source repo, then run `scripts/sync-content.sh`.
+- Never hand-edit `content/spec` or `content/skills`. They are synced copies of `devrel-md/spec` and `devrel-md/skills`. Change the source repo. The Sync content workflow copies it daily into one `content/sync` pull request (run it from the Actions tab to sync now), or run `scripts/sync-content.sh` locally.
 - Every content page must keep working as Markdown: its `<path>.md` route (`/index.md` for the root), `Accept: text/markdown`, and plain `curl`. Every content response sends `Vary: Accept, User-Agent` and a `Link: <path.md>; rel="alternate"; type="text/markdown"` header, for browsers and for Markdown alike. Content pages are Route Handlers using `lib/negotiate.ts` and `lib/contentRoute.ts`, not React pages.
 - Every h2 and h3 keeps a stable id, and code blocks declare a language.
 

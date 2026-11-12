@@ -47,7 +47,7 @@ Community signup is double opt-in. The form needs a valid Turnstile token and ha
 
 ### Synced content
 
-`content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request (run it after changing either source). They're plain files (not submodules) so every build, preview and fresh clone gets them without extra credentials.
+`content/spec` and `content/skills` are generated copies of `devrel-md/spec` and `devrel-md/skills`. Never edit them here: change the source repo instead. `content/SOURCES.json` records the commit each copy came from, and `scripts/sync-content.sh` refreshes them and opens a pull request. The Sync content workflow runs it every day and keeps a single `content/sync` pull request up to date; start it from the Actions tab to sync straight away. They're plain files (not submodules) so every build, preview and fresh clone gets them without extra credentials.
 
 ## Configuration
 
